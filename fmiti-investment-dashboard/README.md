@@ -1,18 +1,8 @@
-# FMITI Investment Conversion Dashboard
+# BSM · Investment Conversion Intelligence
 
-Projects Nigeria pipeline pilot ($78.5bn · 65 projects) for FMITI / NIPC.
+Beth Schwarz & Myers product for FMITI / NIPC.
 
-## Netlify
+- **Projects Nigeria** tab — official pipeline
+- **Conversion Intelligence** tab — map, filters, interest
 
-- **Production branch:** `main` (production deploy)
-- **Preview branches:** `deploy/netlify` and others (Deploy Previews only)
-- **Base directory:** `fmiti-investment-dashboard`
-
-## Data
-
-- `projects.json` – bankability, bottlenecks, conversion probability
-- `projects.csv` – flat export
-
-## PWA
-
-`manifest.json` + `sw.js`
+Hover icons and labels for definitions. Production branch: `main`.
