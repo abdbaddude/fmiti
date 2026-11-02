@@ -2,7 +2,7 @@
 
 Beth Schwarz & Myers product for FMITI / NIPC.
 
-- **Projects Nigeria** tab — official pipeline
-- **Conversion Intelligence** tab — map, filters, interest
+- **Projects Nigeria** — official pipeline KPIs, sector mix, shortlist
+- **Conversion Intelligence** — visual funnel, map (all projects by default), annotated pipeline stages, rich project profiles
 
-Hover icons and labels for definitions. Production branch: `main`.
+Production branch: `main` · Site: https://fmiti-investment-dashboard.netlify.app

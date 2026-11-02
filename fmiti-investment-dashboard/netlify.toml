@@ -1,6 +1,3 @@
-# Package-level config (used when Netlify base directory = this folder).
-# Prefer the repo-root netlify.toml when the whole `fmiti` repo is linked.
-
 [build]
   publish = "."
   command = "echo 'Static site – no build required'"
