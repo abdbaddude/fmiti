@@ -1,4 +1,4 @@
-# fmiti
+# fmiti v1.0.0
 
 FMITI (Federal Ministry of Industry, Trade and Investment) – investment, trade and digital tools.
 
