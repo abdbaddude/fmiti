@@ -2,17 +2,13 @@
 
 **Beth Schwarz & Myers** demo for FMITI / NIPC.
 
-> **Demo notice:** Pipeline stages, progress, dates and funding mixes are **simulated** for illustration, structured like the Projects Nigeria tree.
+> **DEMO** — Simulated stages, dates, progress and funding. Not official FMITI data.
 
 ## Features
-- Visual delivery funnel (yet to start → operational)
-- Map with **state name labels** on each project marker
+- Visual delivery funnel (yet to start → completion)
+- Map with **state names** on markers + BSM badge
 - Funding / finance sources per project
-- Rich intelligence profiles
-- White BSM-branded UI
+- Rich delivery profiles
+- White professional theme
 
-## Local
-Serve `fmiti-investment-dashboard/` statically.
-
-## Repo
-https://github.com/abdbaddude/fmiti
+Branch: `deploy/xxx`
