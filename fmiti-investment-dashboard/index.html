@@ -1,149 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<meta name="theme-color" content="#5c4a32"/>
-<title>BSM · Investment Conversion Intelligence</title>
-<link rel="manifest" href="manifest.json"/>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://cdn.tailwindcss.com"></script>
-<script>tailwind.config={theme:{extend:{colors:{cream:{50:'#fdfcfa',100:'#f7f3eb',200:'#efe8dc',300:'#e2d6c4'},bronze:{400:'#a08968',500:'#8b7355',600:'#6b5b45',700:'#5c4a32',800:'#3d3224',900:'#2a2218'}},fontFamily:{display:['Cormorant Garamond','Georgia','serif'],sans:['Source Sans 3','system-ui','sans-serif']}}}}</script>
-<style>
-body{font-family:Source Sans 3,system-ui,sans-serif;background:#f7f3eb;color:#2a2218}
-.font-display{font-family:Cormorant Garamond,Georgia,serif}
-.card{background:#fdfcfa;border:1px solid #e2d6c4;border-radius:12px}
-.tab-btn{font-size:13px;font-weight:600;padding:.55rem 1.1rem;border-radius:9999px;color:#6b5b45;display:inline-flex;align-items:center;gap:.4rem}
-.tab-btn:hover{background:#efe8dc}.tab-btn.active{background:#5c4a32;color:#fdfcfa}
-.tab-btn svg{width:15px;height:15px}
-.kpi-label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#8b7355;font-weight:600}
-.kpi-value{font-family:Cormorant Garamond,Georgia,serif;font-weight:700;font-size:1.75rem;color:#2a2218}
-.kpi-icon{width:18px;height:18px;color:#8b7355;margin-bottom:2px}
-.prob-bar{height:6px;border-radius:9999px;background:#efe8dc;overflow:hidden}.prob-fill{height:100%;border-radius:9999px}
-#map{height:420px;border-radius:10px;z-index:1;background:#e2d6c4}
-.leaflet-popup-content-wrapper{background:#fdfcfa;color:#2a2218;border:1px solid #e2d6c4;border-radius:10px;padding:0}
-.leaflet-popup-content{margin:0;min-width:260px;max-width:320px}.leaflet-popup-tip{background:#fdfcfa}
-.input-bsm{background:#fdfcfa;border:1px solid #e2d6c4;border-radius:8px;padding:.45rem .75rem;font-size:13px}
-.btn-bronze{background:#5c4a32;color:#fdfcfa;border-radius:8px;font-size:12px;font-weight:600;padding:.4rem .85rem}
-.btn-ghost{background:transparent;color:#6b5b45;border:1px solid #e2d6c4;border-radius:8px;font-size:12px;padding:.4rem .85rem}
-table.data th{font-size:11px;font-weight:600;text-transform:uppercase;color:#8b7355}table.data td{font-size:13px;color:#3d3224}
-table.data tbody tr:hover{background:#f7f3eb}table.data tbody tr.selected{background:#efe8dc}
-.badge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:9999px;border:1px solid}
-.badge-high{background:#ecfdf5;color:#047857;border-color:#a7f3d0}.badge-mh{background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe}
-.badge-med{background:#fffbeb;color:#b45309;border-color:#fde68a}.badge-ml{background:#fff7ed;color:#c2410c;border-color:#fed7aa}.badge-low{background:#fef2f2;color:#b91c1c;border-color:#fecaca}
-.hidden-tab{display:none!important}
-.tip{position:relative;cursor:help}.tip .tip-bubble{display:none;position:absolute;z-index:80;left:50%;transform:translateX(-50%);bottom:calc(100% + 8px);width:max-content;max-width:260px;padding:8px 10px;border-radius:8px;background:#2a2218;color:#fdfcfa;font-size:11px;line-height:1.4;box-shadow:0 8px 24px rgba(42,34,24,.25);pointer-events:none;text-transform:none}
-.tip .tip-bubble::after{content:"";position:absolute;top:100%;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:#2a2218}
-.tip:hover .tip-bubble{display:block}.tip-right .tip-bubble{left:0;transform:none}.tip-right .tip-bubble::after{left:16px}
-.sector-icon-wrap{display:inline-flex;align-items:center;gap:6px}.sector-icon-wrap svg{width:14px;height:14px}
-.funnel-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 0}
-.funnel-stage{position:relative;display:flex;align-items:center;justify-content:space-between;color:#fdfcfa;font-size:12px;font-weight:600;padding:10px 16px;clip-path:polygon(4% 0,96% 0,100% 100%,0 100%);cursor:pointer;transition:transform .15s,filter .15s;min-height:42px}
-.funnel-stage:hover{transform:scale(1.02);filter:brightness(1.08)}
-.funnel-stage.active-stage{outline:2px solid #5c4a32;outline-offset:2px}
-.funnel-stage .fs-label{display:flex;flex-direction:column;align-items:flex-start;gap:1px}
-.funnel-stage .fs-anno{font-size:10px;font-weight:400;opacity:.9}
-.funnel-stage .fs-count{font-family:ui-monospace,monospace;font-size:14px;font-weight:700}
-.pipe-track{display:flex;align-items:flex-start;width:100%;overflow-x:auto;padding-bottom:4px}
-.pipe-step{flex:1;min-width:88px;text-align:center;position:relative}
-.pipe-step::before{content:"";position:absolute;top:11px;left:0;right:0;height:3px;background:#e2d6c4;z-index:0}
-.pipe-step:first-child::before{left:50%}.pipe-step:last-child::before{right:50%}
-.pipe-dot{position:relative;z-index:1;width:24px;height:24px;border-radius:50%;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;border:2px solid #e2d6c4;background:#fdfcfa;color:#8b7355}
-.pipe-step.done .pipe-dot{background:#5c4a32;border-color:#5c4a32;color:#fdfcfa}
-.pipe-step.current .pipe-dot{background:#fdfcfa;border-color:#5c4a32;color:#5c4a32;box-shadow:0 0 0 3px rgba(92,74,50,.2)}
-.pipe-step.done::before,.pipe-step.current::before{background:#5c4a32}
-.pipe-step .pipe-name{font-size:10px;font-weight:600;color:#6b5b45;line-height:1.2}
-.pipe-step .pipe-anno{font-size:9px;color:#a08968;margin-top:2px;line-height:1.25}
-.pipe-step.current .pipe-name{color:#2a2218}
-.profile-hero{height:140px;border-radius:10px 10px 0 0;background-size:cover;background-position:center;position:relative;overflow:hidden}
-.profile-hero::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(42,34,24,.75),rgba(42,34,24,.15))}
-.profile-hero-text{position:absolute;bottom:12px;left:14px;right:14px;z-index:1;color:#fdfcfa}
-.profile-empty{padding:40px 20px;text-align:center;color:#8b7355}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#5c4a32" />
+  <link rel="manifest" href="manifest.json" />
+  <title>Nigeria National Investment Conversion & Delivery Assurance</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{colors:{cream:{50:'#ffffff',100:'#fafafa',200:'#f0ebe3',300:'#e5ddd0'},bronze:{400:'#a08968',500:'#8b7355',600:'#6b5b45',700:'#5c4a32',800:'#3d3224',900:'#2a2218'}},fontFamily:{display:['Cormorant Garamond','Georgia','serif'],sans:['Source Sans 3','system-ui','sans-serif']}}}}</script>
+  <link rel="stylesheet" href="./styles.css" />
 </head>
-<body class="min-h-screen">
-<header class="border-b border-cream-300 bg-cream-50 sticky top-0 z-50">
-<div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
-<div class="flex items-center gap-3 min-w-0">
-<img src="bsm-logo.png" alt="Beth Schwarz & Myers" class="h-11 w-11 object-contain shrink-0" onerror="this.style.display='none'"/>
-<div class="min-w-0">
-<h1 class="font-display text-lg sm:text-xl font-semibold text-bronze-800 truncate">Investment Conversion Intelligence</h1>
-<p class="text-[11px] text-bronze-500 truncate">Beth Schwarz & Myers · FMITI / NIPC pilot</p>
-</div></div>
-<span class="px-2.5 py-1 rounded-full bg-cream-200 text-bronze-600 text-[11px] font-medium border border-cream-300">Pilot</span>
-</div>
-<div class="max-w-7xl mx-auto px-4 sm:px-6 pb-3">
-<nav class="inline-flex gap-1 p-1 rounded-full bg-cream-200/80 border border-cream-300">
-<button type="button" class="tab-btn active tip tip-right" data-tab="nigeria" id="tab-nigeria">
-<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M4 19V5h6v14H4zM14 19V9h6v10h-6z"/><path d="M4 9h6M14 13h6"/></svg>
-Projects Nigeria
-<span class="tip-bubble">Official Projects Nigeria pipeline as published by the Federal Ministry of Finance.</span>
-</button>
-<button type="button" class="tab-btn tip tip-right" data-tab="conversion" id="tab-conversion">
-<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/><path d="M8 11h6M11 8v6"/></svg>
-Conversion Intelligence
-<span class="tip-bubble">BSM conversion workspace: funnel, map, pipeline stages and rich project profiles.</span>
-</button>
-</nav></div></header>
-<main class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-<div id="panel-nigeria" class="space-y-6">
-<section class="grid grid-cols-2 md:grid-cols-4 gap-3">
-<div class="card p-4 tip tip-right"><svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 19h16M6 16V9m4 7V5m4 11v-6m4 6v-3"/></svg><p class="kpi-label">Total pipeline</p><p class="kpi-value mt-1">$78.5<span class="text-base font-sans font-medium text-bronze-500">bn</span></p><p class="text-[11px] text-bronze-400 mt-0.5">65 projects</p><span class="tip-bubble">Aggregate capital ask across all 65 Projects Nigeria listings.</span></div>
-<div class="card p-4 tip tip-right"><svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M16 11a4 4 0 10-8 0"/><path d="M4 20a8 8 0 0116 0"/><circle cx="12" cy="8" r="3"/></svg><p class="kpi-label">Projected jobs</p><p class="kpi-value mt-1 text-bronze-700">366,763</p><p class="text-[11px] text-bronze-400 mt-0.5">if fully executed</p><span class="tip-bubble">Sponsor-reported employment if the full pipeline reaches operations.</span></div>
-<div class="card p-4 tip tip-right"><svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5L12 3z"/></svg><p class="kpi-label">P1 shortlist</p><p class="kpi-value mt-1" id="p1Count">—</p><p class="text-[11px] text-bronze-400 mt-0.5">high-impact targets</p><span class="tip-bubble">Priority-1 projects for near-term conversion focus.</span></div>
-<div class="card p-4 tip tip-right"><svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 12h4l3-7 4 14 3-7h2"/></svg><p class="kpi-label">Avg conversion prob</p><p class="kpi-value mt-1" id="avgProb">—</p><p class="text-[11px] text-bronze-400 mt-0.5">P1 weighted estimate</p><span class="tip-bubble">Indicative probability of progressing toward financial close for P1 projects.</span></div>
-</section>
-<section class="grid lg:grid-cols-3 gap-5">
-<div class="lg:col-span-2 card p-5"><h2 class="font-display text-base font-semibold text-bronze-800 mb-4">Capital by sector</h2><div class="space-y-3.5" id="sectorBars"></div></div>
-<div class="card p-5"><h2 class="font-display text-base font-semibold text-bronze-800 mb-3">Conversion funnel</h2><div class="funnel-wrap" id="funnelNigeria"></div></div>
-</section>
-<section><h2 class="font-display text-lg font-semibold text-bronze-800 mb-3">Priority shortlist</h2>
-<div class="card overflow-x-auto"><table class="data w-full min-w-[680px]"><thead class="bg-cream-100 border-b border-cream-300"><tr><th class="px-3 py-2.5 text-left">Project</th><th class="px-3 py-2.5 text-left">Capital</th><th class="px-3 py-2.5 text-left">Bankability</th><th class="px-3 py-2.5 text-left">Conv. prob</th><th class="px-3 py-2.5 text-left">Bottlenecks</th></tr></thead><tbody id="shortlist" class="divide-y divide-cream-200"></tbody></table></div></section>
-<section><div class="flex flex-wrap items-center justify-between gap-2 mb-3"><h2 class="font-display text-lg font-semibold text-bronze-800">Full pipeline</h2>
-<select id="sectorFilterNigeria" class="input-bsm text-xs"><option value="all">All sectors</option><option value="Oil, Gas & Power">Oil, Gas & Power</option><option value="Transport & Maritime">Transport & Maritime</option><option value="Agriculture & Agro-Processing">Agriculture & Agro-Processing</option><option value="Industry, Manufacturing & Mining">Industry, Manufacturing & Mining</option><option value="Technology, Health & Urban">Technology, Health & Urban</option></select></div>
-<div class="card overflow-x-auto max-h-[420px] overflow-y-auto"><table class="data w-full min-w-[720px]"><thead class="bg-cream-100 border-b border-cream-300 sticky top-0"><tr><th class="px-3 py-2.5 text-left">#</th><th class="px-3 py-2.5 text-left">Project</th><th class="px-3 py-2.5 text-left">Sector</th><th class="px-3 py-2.5 text-right">Capital</th><th class="px-3 py-2.5 text-left">Bankability</th><th class="px-3 py-2.5 text-left">Prob</th></tr></thead><tbody id="pipelineNigeria" class="divide-y divide-cream-200"></tbody></table></div></section>
-</div>
-<div id="panel-conversion" class="space-y-6 hidden-tab">
-<section class="card p-4"><div class="flex flex-wrap gap-3 items-end">
-<div class="flex-1 min-w-[160px]"><label class="block text-[10px] uppercase tracking-wider text-bronze-500 font-semibold mb-1">Search</label><input type="search" id="ciSearch" class="input-bsm w-full" placeholder="Project, location, sponsor…"/></div>
-<div><label class="block text-[10px] uppercase tracking-wider text-bronze-500 font-semibold mb-1">Sector</label><select id="ciSector" class="input-bsm"><option value="all">All</option><option value="Oil, Gas & Power">Oil, Gas & Power</option><option value="Transport & Maritime">Transport & Maritime</option><option value="Agriculture & Agro-Processing">Agriculture</option><option value="Industry, Manufacturing & Mining">Industry</option><option value="Technology, Health & Urban">Tech / Health / Urban</option></select></div>
-<div><label class="block text-[10px] uppercase tracking-wider text-bronze-500 font-semibold mb-1">Priority</label><select id="ciPriority" class="input-bsm"><option value="all">All</option><option value="1">P1 only</option><option value="2">P2 only</option><option value="3">P3 only</option></select></div>
-<div><label class="block text-[10px] uppercase tracking-wider text-bronze-500 font-semibold mb-1">Bankability</label><select id="ciBank" class="input-bsm"><option value="all">All</option><option value="High">High</option><option value="Medium-High">Medium-High</option><option value="Medium">Medium</option><option value="Medium-Low">Medium-Low</option><option value="Low-Medium">Low-Medium</option></select></div>
-<div><label class="block text-[10px] uppercase tracking-wider text-bronze-500 font-semibold mb-1">Min. conv. %</label><select id="ciProb" class="input-bsm"><option value="0">Any</option><option value="0.35">≥ 35%</option><option value="0.40">≥ 40%</option><option value="0.45">≥ 45%</option></select></div>
-<button type="button" id="ciReset" class="btn-ghost">Reset</button></div>
-<p class="text-[11px] text-bronze-400 mt-2" id="ciResultCount"></p></section>
-<div class="grid lg:grid-cols-5 gap-5">
-<section class="lg:col-span-2 card p-5"><h2 class="font-display text-base font-semibold text-bronze-800 mb-1">Conversion funnel</h2><p class="text-[11px] text-bronze-500 mb-3">Click a stage for annotation and filtered projects</p><div class="funnel-wrap" id="funnelConversion"></div><p class="text-[11px] text-bronze-500 mt-3" id="funnelStageNote">All planned projects are on the map by default.</p></section>
-<section class="lg:col-span-3 card p-4 sm:p-5"><div class="flex flex-wrap items-center justify-between gap-2 mb-3"><div><h2 class="font-display text-base font-semibold text-bronze-800">Geographic distribution</h2><p class="text-[11px] text-bronze-500 mt-0.5">All planned projects · click marker to open profile</p></div><div class="flex flex-wrap gap-2 text-[10px] text-bronze-600" id="mapLegend"></div></div><div id="map" class="border border-cream-300"></div></section>
-</div>
-<div class="grid lg:grid-cols-5 gap-5">
-<section class="lg:col-span-2"><h2 class="font-display text-base font-semibold text-bronze-800 mb-3">Projects</h2>
-<div class="card overflow-x-auto max-h-[560px] overflow-y-auto"><table class="data w-full min-w-[320px]"><thead class="bg-cream-100 border-b border-cream-300 sticky top-0"><tr><th class="px-3 py-2.5 text-left">Project</th><th class="px-3 py-2.5 text-left">Prob</th><th class="px-3 py-2.5 text-left"></th></tr></thead><tbody id="ciTable" class="divide-y divide-cream-200"></tbody></table></div>
-<div class="card p-4 mt-4"><h3 class="font-display text-sm font-semibold text-bronze-800 mb-2">Express interest</h3><p class="text-[11px] text-bronze-500 mb-2" id="interestCount">0 marked</p><div id="interestPanel" class="text-sm text-bronze-600">Select projects to build your engagement shortlist.</div><div id="interestList" class="space-y-2 hidden max-h-40 overflow-y-auto"></div><div class="mt-3 flex gap-2"><button type="button" id="exportInterest" class="btn-bronze">Export JSON</button><button type="button" id="clearInterest" class="btn-ghost">Clear</button></div></div></section>
-<section class="lg:col-span-3"><h2 class="font-display text-base font-semibold text-bronze-800 mb-3">Project intelligence profile</h2>
-<div class="card overflow-hidden min-h-[520px]" id="profilePanel">
-<div class="profile-empty" id="profileEmpty"><p class="font-display text-lg text-bronze-700">Select a project</p><p class="text-sm mt-1 max-w-xs mx-auto">Click a map marker, table row, or funnel stage to open a rich conversion profile.</p></div>
-<div id="profileContent" class="hidden">
-<div class="profile-hero" id="profileHero"><div class="profile-hero-text"><p class="text-[10px] uppercase tracking-wider opacity-90" id="profileSectorTag"></p><h3 class="font-display text-xl font-semibold leading-tight" id="profileName"></h3><p class="text-xs opacity-90 mt-0.5" id="profileLocation"></p></div></div>
-<div class="p-5 space-y-5">
-<div><div class="flex items-center justify-between mb-2"><h4 class="text-xs font-semibold uppercase tracking-wider text-bronze-500">Conversion pipeline</h4><span class="text-[11px] text-bronze-500" id="profileStageLabel"></span></div><div class="pipe-track" id="profilePipeline"></div></div>
-<div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-<div class="rounded-lg bg-cream-100 border border-cream-200 p-3"><p class="text-[10px] uppercase text-bronze-500 font-semibold">Capital</p><p class="font-mono font-semibold text-bronze-800 mt-0.5" id="profileCapital"></p></div>
-<div class="rounded-lg bg-cream-100 border border-cream-200 p-3"><p class="text-[10px] uppercase text-bronze-500 font-semibold">Bankability</p><p class="mt-0.5" id="profileBank"></p></div>
-<div class="rounded-lg bg-cream-100 border border-cream-200 p-3"><p class="text-[10px] uppercase text-bronze-500 font-semibold">Conv. prob.</p><p class="mt-0.5" id="profileProb"></p></div>
-<div class="rounded-lg bg-cream-100 border border-cream-200 p-3"><p class="text-[10px] uppercase text-bronze-500 font-semibold">Priority</p><p class="font-semibold text-bronze-800 mt-0.5" id="profilePriority"></p></div>
-</div>
-<div class="grid sm:grid-cols-2 gap-4">
-<div><h4 class="text-xs font-semibold uppercase tracking-wider text-bronze-500 mb-2">Financing & sponsor</h4><p class="text-sm text-bronze-800" id="profileFinance"></p><p class="text-[12px] text-bronze-500 mt-1" id="profileSponsor"></p></div>
-<div><h4 class="text-xs font-semibold uppercase tracking-wider text-bronze-500 mb-2">Key bottlenecks</h4><ul class="text-sm text-bronze-700 space-y-1" id="profileBottlenecks"></ul></div>
-</div>
-<div><h4 class="text-xs font-semibold uppercase tracking-wider text-bronze-500 mb-2">Pipeline history & dates</h4><div class="space-y-1.5" id="profileTimeline"></div></div>
-<div class="rounded-lg border border-bronze-500/30 bg-cream-100 p-4"><h4 class="text-xs font-semibold uppercase tracking-wider text-bronze-600 mb-1">Recommended next action</h4><p class="text-sm text-bronze-800 font-medium" id="profileNext"></p><p class="text-[11px] text-bronze-500 mt-2" id="profileIntel"></p></div>
-<div class="flex flex-wrap gap-2"><button type="button" id="profileInterest" class="btn-bronze">Express interest</button><button type="button" id="profileClose" class="btn-ghost">Close profile</button></div>
-</div></div></div></section></div></div></main>
-<footer class="border-t border-cream-300 mt-10 py-8"><div class="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left"><div class="flex items-center gap-2"><img src="bsm-logo.png" alt="" class="h-8 w-8 object-contain" onerror="this.style.display='none'"/><div><p class="font-display text-sm font-semibold text-bronze-800">Beth Schwarz & Myers</p><p class="text-[11px] text-bronze-500">Investment · Trade · Development intelligence</p></div></div><p class="text-[11px] text-bronze-400 max-w-md">FMITI / NIPC Investment Conversion pilot · Source: Projects Nigeria (Federal Ministry of Finance, Oct 2026)</p></div></footer>
-<div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 rounded-lg bg-bronze-700 text-cream-50 text-sm opacity-0 pointer-events-none transition-opacity z-[1000]"></div>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="./app.js"></script>
+<body class="min-h-screen bg-white">
+  <div class="demo-banner" role="alert"><strong>Demo notice:</strong> This is a demonstration of the <em>Nigeria National Investment Conversion & Delivery Assurance</em> workspace. Pipeline stages, progress percentages, dates and funding mixes use <strong>simulated data</strong> structured like the Projects Nigeria tree — not live FMITI status.</div>
+  <header class="border-b border-cream-300 bg-white sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3 min-w-0">
+        <img src="bsm-logo.png" alt="Beth Schwarz & Myers" class="h-12 w-12 object-contain shrink-0" onerror="this.style.display='none'" />
+        <div class="min-w-0">
+          <h1 class="font-display text-base sm:text-lg font-semibold text-bronze-800 tracking-tight leading-tight">Nigeria National Investment Conversion & Delivery Assurance</h1>
+          <p class="text-[11px] text-bronze-500 truncate">Beth Schwarz & Myers · FMITI / NIPC pilot · Demo</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 shrink-0">
+        <img src="bsm-logo.png" alt="BSM" class="h-8 w-8 object-contain hidden sm:block" onerror="this.style.display='none'" />
+        <span class="px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 text-[11px] font-semibold border border-amber-200">Demo</span>
+      </div>
+    </div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 pb-3">
+      <nav class="inline-flex gap-1 p-1 rounded-full bg-cream-100 border border-cream-300">
+        <button type="button" class="tab-btn active" data-tab="nigeria" id="tab-nigeria">Projects Nigeria</button>
+        <button type="button" class="tab-btn" data-tab="conversion" id="tab-conversion">Conversion & Delivery</button>
+      </nav>
+    </div>
+  </header>
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+    <div id="panel-nigeria" class="space-y-6">
+      <section class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div class="card p-4"><p class="kpi-label">Total pipeline</p><p class="kpi-value mt-1">$78.5<span class="text-base font-sans font-medium text-bronze-500">bn</span></p><p class="text-[11px] text-bronze-400 mt-0.5">65 projects</p></div>
+        <div class="card p-4"><p class="kpi-label">Projected jobs</p><p class="kpi-value mt-1 text-bronze-700">366,763</p><p class="text-[11px] text-bronze-400 mt-0.5">if fully executed</p></div>
+        <div class="card p-4"><p class="kpi-label">Operational (demo)</p><p class="kpi-value mt-1" id="opsCount">—</p><p class="text-[11px] text-bronze-400 mt-0.5">simulated delivery</p></div>
+        <div class="card p-4"><p class="kpi-label">Avg conversion prob</p><p class="kpi-value mt-1" id="avgProb">—</p><p class="text-[11px] text-bronze-400 mt-0.5">demo-adjusted</p></div>
+      </section>
+      <section class="grid lg:grid-cols-3 gap-5">
+        <div class="lg:col-span-2 card p-5"><h2 class="font-display text-base font-semibold text-bronze-800 mb-4">Capital by sector</h2><div class="space-y-3.5" id="sectorBars"></div></div>
+        <div class="card p-5"><h2 class="font-display text-base font-semibold text-bronze-800 mb-3">Delivery funnel</h2><div class="funnel-wrap" id="funnelNigeria"></div></div>
+      </section>
+      <section><h2 class="font-display text-lg font-semibold text-bronze-800 mb-3">Priority shortlist</h2>
+        <div class="card overflow-x-auto"><table class="data w-full min-w-[720px]"><thead class="bg-cream-100 border-b border-cream-300"><tr><th class="px-3 py-2.5 text-left">Project</th><th class="px-3 py-2.5 text-left">State</th><th class="px-3 py-2.5 text-left">Delivery stage</th><th class="px-3 py-2.5 text-left">Capital</th><th class="px-3 py-2.5 text-left">Funding</th><th class="px-3 py-2.5 text-left">Conv. prob</th></tr></thead><tbody id="shortlist" class="divide-y divide-cream-200"></tbody></table></div></section>
+      <section><div class="flex flex-wrap items-center justify-between gap-2 mb-3"><h2 class="font-display text-lg font-semibold text-bronze-800">Full pipeline</h2>
+        <select id="sectorFilterNigeria" class="input-bsm text-xs"><option value="all">All sectors</option><option value="Oil, Gas & Power">Oil, Gas & Power</option><option value="Transport & Maritime">Transport & Maritime</option><option value="Agriculture & Agro-Processing">Agriculture & Agro-Processing</option><option value="Industry, Manufacturing & Mining">Industry, Manufacturing & Mining</option><option value="Technology, Health & Urban">Technology, Health & Urban</option></select></div>
+        <div class="card overflow-x-auto max-h-[420px] overflow-y-auto"><table class="data w-full min-w-[780px]"><thead class="bg-cream-100 border-b border-cream-300 sticky top-0"><tr><th class="px-3 py-2.5 text-left">#</th><th class="px-3 py-2.5 text-left">Project</th><th class="px-3 py-2.5 text-left">State</th><th class="px-3 py-2.5 text-left">Stage</th><th class="px-3 py-2.5 text-right">Capital</th><th class="px-3 py-2.5 text-left">Bankability</th><th class="px-3 py-2.5 text-left">Prob</th></tr></thead><tbody id="pipelineNigeria" class="divide-y divide-cream-200"></tbody></table></div></section>
+    </div>
+    <div id="panel-conversion" class="space-y-6 hidden-tab">
+      <section class="card p-4"><div class="flex flex-wrap gap-3 items-end">
+        <div class="flex-1 min-w-[160px]"><label class="block text-[10px] uppercase tracking-wider text-bronze-500 font-semibold mb-1">Search</label><input type="search" id="ciSearch" class="input-bsm w-full" placeholder="Project, state, sponsor, funding…" /></div>
+        <div><label class="block text-[10px] uppercase tracking-wider text-bronze-500 font-semibold mb-1">Sector</label><select id="ciSector" class="input-bsm"><option value="all">All</option><option value="Oil, Gas & Power">Oil, Gas & Power</option><option value="Transport & Maritime">Transport & Maritime</option><option value="Agriculture & Agro-Processing">Agriculture</option><option value="Industry, Manufacturing & Mining">Industry</option><option value="Technology, Health & Urban">Tech / Health / Urban</option></select></div>
+        <div><label class="block text-[10px] uppercase tracking-wider text-bronze-500 font-semibold mb-1">Delivery stage</label><select id="ciStage" class="input-bsm"><option value="all">All stages</option><option value="yet_to_start">Yet to start</option><option value="initiation">Initiation</option><option value="bankability">Bankability review</option><option value="engagement">Active engagement</option><option value="close">Financial close</option><option value="operational">Operational</option></select></div>
+        <div><label class="block text-[10px] uppercase tracking-wider text-bronze-500 font-semibold mb-1">Priority</label><select id="ciPriority" class="input-bsm"><option value="all">All</option><option value="1">P1 only</option><option value="2">P2 only</option><option value="3">P3 only</option></select></div>
+        <button type="button" id="ciReset" class="btn-ghost">Reset</button></div>
+        <p class="text-[11px] text-bronze-400 mt-2" id="ciResultCount"></p></section>
+      <div class="grid lg:grid-cols-5 gap-5">
+        <section class="lg:col-span-2 card p-5"><h2 class="font-display text-base font-semibold text-bronze-800 mb-1">Delivery funnel</h2><p class="text-[11px] text-bronze-500 mb-3">Simulated stages · click to filter</p><div class="funnel-wrap" id="funnelConversion"></div><p class="text-[11px] text-bronze-500 mt-3" id="funnelStageNote">Map shows all planned projects by default (demo stages).</p></section>
+        <section class="lg:col-span-3 card p-4 sm:p-5"><div class="flex flex-wrap items-center justify-between gap-2 mb-3"><div><h2 class="font-display text-base font-semibold text-bronze-800">Geographic distribution · state labels</h2><p class="text-[11px] text-bronze-500 mt-0.5">Each marker shows state name · click for full profile</p></div><div class="flex items-center gap-2"><img src="bsm-logo.png" alt="BSM" class="h-7 w-7 object-contain" onerror="this.style.display='none'" /><div class="flex flex-wrap gap-2 text-[10px] text-bronze-600" id="mapLegend"></div></div></div><div id="map" class="border border-cream-300"></div></section>
+      </div>
+      <div class="grid lg:grid-cols-5 gap-5">
+        <section class="lg:col-span-2"><h2 class="font-display text-base font-semibold text-bronze-800 mb-3">Projects</h2><div class="card overflow-x-auto max-h-[560px] overflow-y-auto"><table class="data w-full min-w-[300px]"><thead class="bg-cream-100 border-b border-cream-300 sticky top-0"><tr><th class="px-3 py-2.5 text-left">Project</th><th class="px-3 py-2.5 text-left">Stage</th><th class="px-3 py-2.5 text-left"></th></tr></thead><tbody id="ciTable" class="divide-y divide-cream-200"></tbody></table></div>
+          <div class="card p-4 mt-4"><h3 class="font-display text-sm font-semibold text-bronze-800 mb-2">Express interest</h3><p class="text-[11px] text-bronze-500 mb-2" id="interestCount">0 marked</p><div id="interestPanel" class="text-sm text-bronze-600">Select projects to build your engagement shortlist.</div><div id="interestList" class="space-y-2 hidden max-h-40 overflow-y-auto"></div><div class="mt-3 flex gap-2"><button type="button" id="exportInterest" class="btn-bronze">Export JSON</button><button type="button" id="clearInterest" class="btn-ghost">Clear</button></div></div></section>
+        <section class="lg:col-span-3"><h2 class="font-display text-base font-semibold text-bronze-800 mb-3">Project intelligence profile</h2>
+          <div class="card overflow-hidden min-h-[520px]" id="profilePanel"><div class="profile-empty" id="profileEmpty"><p class="font-display text-lg text-bronze-700">Select a project</p><p class="text-sm mt-1 max-w-xs mx-auto">Click a map marker (with state name), table row, or funnel stage to open delivery assurance profile.</p></div>
+            <div id="profileContent" class="hidden"><div class="profile-hero" id="profileHero"><div class="profile-hero-text"><p class="text-[10px] uppercase tracking-wider opacity-90" id="profileSectorTag"></p><h3 class="font-display text-xl font-semibold leading-tight" id="profileName"></h3><p class="text-xs opacity-90 mt-0.5" id="profileLocation"></p></div></div>
+              <div class="p-5 space-y-5"><div><div class="flex items-center justify-between mb-2"><h4 class="text-xs font-semibold uppercase tracking-wider text-bronze-500">Conversion & delivery pipeline</h4><span class="text-[11px] text-bronze-500" id="profileStageLabel"></span></div><div class="pipe-track" id="profilePipeline"></div><div class="mt-3"><div class="flex justify-between text-[10px] text-bronze-500 mb-1"><span>Delivery progress (demo)</span><span id="profileProgressPct"></span></div><div class="prob-bar"><div class="prob-fill" id="profileProgressBar" style="width:0%;background:#5c4a32"></div></div></div></div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3"><div class="rounded-lg bg-cream-100 border border-cream-200 p-3"><p class="text-[10px] uppercase text-bronze-500 font-semibold">Capital</p><p class="font-mono font-semibold text-bronze-800 mt-0.5" id="profileCapital"></p></div><div class="rounded-lg bg-cream-100 border border-cream-200 p-3"><p class="text-[10px] uppercase text-bronze-500 font-semibold">Bankability</p><p class="mt-0.5" id="profileBank"></p></div><div class="rounded-lg bg-cream-100 border border-cream-200 p-3"><p class="text-[10px] uppercase text-bronze-500 font-semibold">Conv. prob.</p><p class="mt-0.5" id="profileProb"></p></div><div class="rounded-lg bg-cream-100 border border-cream-200 p-3"><p class="text-[10px] uppercase text-bronze-500 font-semibold">State</p><p class="font-semibold text-bronze-800 mt-0.5" id="profileState"></p></div></div>
+                <div class="grid sm:grid-cols-2 gap-4"><div><h4 class="text-xs font-semibold uppercase tracking-wider text-bronze-500 mb-2">Funding / finance sources</h4><ul class="text-sm text-bronze-800 space-y-1" id="profileFunding"></ul><p class="text-[12px] text-bronze-500 mt-2" id="profileFinanceModel"></p><p class="text-[12px] text-bronze-500" id="profileSponsor"></p></div><div><h4 class="text-xs font-semibold uppercase tracking-wider text-bronze-500 mb-2">Key bottlenecks</h4><ul class="text-sm text-bronze-700 space-y-1" id="profileBottlenecks"></ul></div></div>
+                <div><h4 class="text-xs font-semibold uppercase tracking-wider text-bronze-500 mb-2">Pipeline history & dates (demo)</h4><div class="space-y-1.5" id="profileTimeline"></div></div>
+                <div class="rounded-lg border border-bronze-500/30 bg-cream-100 p-4"><h4 class="text-xs font-semibold uppercase tracking-wider text-bronze-600 mb-1">Recommended next action</h4><p class="text-sm text-bronze-800 font-medium" id="profileNext"></p><p class="text-[11px] text-bronze-500 mt-2" id="profileIntel"></p></div>
+                <div class="flex flex-wrap gap-2"><button type="button" id="profileInterest" class="btn-bronze">Express interest</button><button type="button" id="profileClose" class="btn-ghost">Close profile</button></div>
+              </div></div></div></section>
+      </div>
+    </div>
+  </main>
+  <footer class="border-t border-cream-300 mt-10 py-8 bg-white"><div class="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left"><div class="flex items-center gap-2"><img src="bsm-logo.png" alt="BSM" class="h-9 w-9 object-contain" onerror="this.style.display='none'" /><div><p class="font-display text-sm font-semibold text-bronze-800">Beth Schwarz & Myers</p><p class="text-[11px] text-bronze-500">Investment · Trade · Development intelligence</p></div></div><p class="text-[11px] text-bronze-400 max-w-lg">Nigeria National Investment Conversion & Delivery Assurance · Demo · Simulated stages/dates/funding · Structure aligned to Projects Nigeria</p></div></footer>
+  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 rounded-lg bg-bronze-700 text-white text-sm shadow-lg opacity-0 pointer-events-none transition-opacity duration-300 z-[1000]"></div>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="./app.js"></script>
 </body>
 </html>
