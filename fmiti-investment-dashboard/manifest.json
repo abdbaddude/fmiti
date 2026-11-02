@@ -1,10 +1,10 @@
 {
-  "name": "BSM Investment Conversion Intelligence",
-  "short_name": "BSM Invest",
-  "description": "Beth Schwarz & Myers · FMITI / NIPC conversion intelligence pilot",
+  "name": "Nigeria National Investment Conversion & Delivery Assurance",
+  "short_name": "NG Investment Assurance",
+  "description": "BSM demo — Nigeria National Investment Conversion & Delivery Assurance",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#f7f3eb",
+  "background_color": "#ffffff",
   "theme_color": "#5c4a32",
   "orientation": "any",
   "icons": [

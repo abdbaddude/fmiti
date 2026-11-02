@@ -1,8 +1,18 @@
-# BSM · Investment Conversion Intelligence
+# Nigeria National Investment Conversion & Delivery Assurance
 
-Beth Schwarz & Myers product for FMITI / NIPC.
+**Beth Schwarz & Myers** demo for FMITI / NIPC.
 
-- **Projects Nigeria** — official pipeline KPIs, sector mix, shortlist
-- **Conversion Intelligence** — visual funnel, map (all projects by default), annotated pipeline stages, rich project profiles
+> **Demo notice:** Pipeline stages, progress, dates and funding mixes are **simulated** for illustration, structured like the Projects Nigeria tree.
 
-Production branch: `main` · Site: https://fmiti-investment-dashboard.netlify.app
+## Features
+- Visual delivery funnel (yet to start → operational)
+- Map with **state name labels** on each project marker
+- Funding / finance sources per project
+- Rich intelligence profiles
+- White BSM-branded UI
+
+## Local
+Serve `fmiti-investment-dashboard/` statically.
+
+## Repo
+https://github.com/abdbaddude/fmiti
