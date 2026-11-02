@@ -13,14 +13,7 @@
 [build.environment]
   NODE_VERSION = "20"
 
-# SPA-style fallback (optional; dashboard is index.html at root of publish dir)
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-  conditions = {Role = ["admin"]}
-# Disabled catch-all by default – static files must resolve directly.
-# Uncomment a simple 200 rewrite only if you add client-side routes later:
+# Optional SPA fallback if you add client-side routes later:
 # [[redirects]]
 #   from = "/*"
 #   to = "/index.html"
@@ -42,8 +35,3 @@
   for = "/projects.json"
   [headers.values]
     Cache-Control = "public, max-age=300"
-
-[[headers]]
-  for = "/*.css"
-  [headers.values]
-    Cache-Control = "public, max-age=86400"
