@@ -1,46 +1,329 @@
-let projects=[],interest=JSON.parse(localStorage.getItem('fmiti-interest')||'[]');
-let map,markersLayer,mapReady=false,selectedId=null,activeFunnelStage=null;
-const PIPELINE_STAGES=[
-  {id:'announced',label:'Announced',anno:'Listed on Projects Nigeria portal',width:'100%',color:'#8b7355'},
-  {id:'bankability',label:'Bankability review',anno:'Investor pack · IRR/DSCR · permits',width:'88%',color:'#6b5b45'},
-  {id:'engagement',label:'Active engagement',anno:'Sponsor talks · LOI · site visits',width:'72%',color:'#5c4a32'},
-  {id:'close',label:'Financial close',anno:'Debt/equity committed · conditions precedent',width:'56%',color:'#3d3224'},
-  {id:'operational',label:'Operational',anno:'COD · jobs · economic impact',width:'40%',color:'#2a2218'}
-];
-const SECTOR_COLORS={'Oil, Gas & Power':'#b45309','Transport & Maritime':'#1d4ed8','Agriculture & Agro-Processing':'#047857','Industry, Manufacturing & Mining':'#7c3aed','Technology, Health & Urban':'#be123c'};
-const SECTOR_ICONS={'Oil, Gas & Power':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M12 3v6m0 0c-2 0-4 1.5-4 4v8h8v-8c0-2.5-2-4-4-4z"/><path d="M9 21h6"/></svg>','Transport & Maritime':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M3 17l2-7h14l2 7"/><path d="M5 17v2h2m10-2v2h2"/><path d="M7 10V7h10v3"/></svg>','Agriculture & Agro-Processing':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M12 21V11"/><path d="M7 21c0-5 2.5-8 5-10 2.5 2 5 5 5 10"/><path d="M12 11c-2-3-2-6 0-8 2 2 2 5 0 8z"/></svg>','Industry, Manufacturing & Mining':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M3 21h18"/><path d="M5 21V10l5 3V8l5 3V5l4 2v14"/></svg>','Technology, Health & Urban':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/></svg>','Tech, Health & Urban':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/></svg>'};
-const SECTOR_DEFS={'Oil, Gas & Power':'Upstream, midstream, downstream hydrocarbons, gas processing, power generation and related energy infrastructure.','Transport & Maritime':'Ports, rail, inland waterways, roads and logistics corridors.','Agriculture & Agro-Processing':'Primary production, agro-processing hubs and export-oriented food systems.','Industry, Manufacturing & Mining':'Industrial parks, SEZs, steel, cement, solid minerals and manufacturing.','Technology, Health & Urban':'Digital infrastructure, health platforms, urban services and knowledge hubs.','Tech, Health & Urban':'Digital infrastructure, health platforms, urban services and knowledge hubs.'};
-const SECTOR_IMAGES={'Oil, Gas & Power':'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&q=80','Transport & Maritime':'https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?w=800&q=80','Agriculture & Agro-Processing':'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&q=80','Industry, Manufacturing & Mining':'https://images.unsplash.com/photo-1565793298595-6a99b0c5833f?w=800&q=80','Technology, Health & Urban':'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80'};
-const sectorsMeta=[{name:'Oil, Gas & Power',capital:36.4,count:25,color:'#b45309',pct:46.4},{name:'Transport & Maritime',capital:25.0,count:8,color:'#1d4ed8',pct:31.8},{name:'Agriculture & Agro-Processing',capital:9.8,count:6,color:'#047857',pct:12.5},{name:'Industry, Manufacturing & Mining',capital:6.6,count:17,color:'#7c3aed',pct:8.4},{name:'Tech, Health & Urban',capital:0.7,count:9,color:'#be123c',pct:0.9}];
-function formatCapital(c){return c>=1000?`$${(c/1000).toFixed(2)} bn`:`$${Number(c).toFixed(c%1?1:0)} m`}
-function bankBadge(b){const cls={'High':'badge-high','Medium-High':'badge-mh','Medium':'badge-med','Medium-Low':'badge-ml','Low-Medium':'badge-low'}[b]||'badge-med';return `<span class="badge ${cls}">${b}</span>`}
-function probBar(p){const pct=Math.round(p*100);const color=pct>=45?'#047857':pct>=35?'#1d4ed8':pct>=28?'#b45309':'#be123c';return `<div class="flex items-center gap-2 min-w-[80px]"><div class="prob-bar flex-1"><div class="prob-fill" style="width:${pct}%;background:${color}"></div></div><span class="text-[11px] font-mono text-bronze-700 w-8">${pct}%</span></div>`}
-function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.remove('opacity-0');el.classList.add('opacity-100');setTimeout(()=>{el.classList.remove('opacity-100');el.classList.add('opacity-0')},2200)}
-function stageIndex(p){if(interest.includes(p.id))return 2;if(p.bankability==='High'||p.bankability==='Medium-High')return 1;return 0}
-function stageIntel(p){const si=stageIndex(p);return ['Project is on the public pipeline. Priority is to obtain full investor materials and confirm sponsor seriousness.','Bankability signals are relatively strong. Focus diligence on offtake, permits and financing structure.','Marked for active engagement. Coordinate site access, term-sheet dialogue and stakeholder mapping.','Approaching financial close. Track conditions precedent, security package and intercreditor terms.','Operational phase — monitor COD, jobs delivery and local content outcomes.'][si]}
-function switchTab(name){document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));document.getElementById('panel-nigeria').classList.toggle('hidden-tab',name!=='nigeria');document.getElementById('panel-conversion').classList.toggle('hidden-tab',name!=='conversion');if(name==='conversion'){if(!mapReady){initMap();mapReady=true}setTimeout(()=>{if(map){map.invalidateSize();renderMapMarkers(getFiltered())}},100)}}
-document.querySelectorAll('.tab-btn').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
-function saveInterest(){localStorage.setItem('fmiti-interest',JSON.stringify(interest));renderInterest();renderFunnels();if(selectedId)openProfile(selectedId)}
-function toggleInterest(id){const idx=interest.indexOf(id);if(idx>=0)interest.splice(idx,1);else interest.push(id);saveInterest();toast(idx>=0?'Removed from interest':'Added to interest');renderCiTable(getFiltered())}
-function interestBtn(id){const on=interest.includes(id);return `<button onclick="event.stopPropagation();toggleInterest(${id})" class="text-[10px] font-semibold px-2 py-1 rounded-md border ${on?'bg-bronze-700 text-cream-50 border-bronze-700':'bg-cream-50 text-bronze-600 border-cream-300'}">${on?'Interested':'Interest'}</button>`}
-function renderInterest(){const panel=document.getElementById('interestPanel'),list=document.getElementById('interestList');document.getElementById('interestCount').textContent=interest.length+' marked';if(!interest.length){panel.classList.remove('hidden');list.classList.add('hidden');list.innerHTML='';return}panel.classList.add('hidden');list.classList.remove('hidden');list.innerHTML=interest.map(id=>projects.find(p=>p.id===id)).filter(Boolean).map(p=>`<div class="p-2 rounded-lg bg-cream-100 border border-cream-300 cursor-pointer" onclick="openProfile(${p.id})"><div class="flex justify-between gap-2"><div class="font-medium text-xs text-bronze-800">${p.name}</div><button onclick="event.stopPropagation();toggleInterest(${p.id})" class="text-[10px] text-bronze-500">×</button></div></div>`).join('')}
-function renderSectorBars(){document.getElementById('sectorBars').innerHTML=sectorsMeta.map(s=>{const icon=SECTOR_ICONS[s.name]||SECTOR_ICONS['Industry, Manufacturing & Mining'];const def=SECTOR_DEFS[s.name]||'';return `<div class="tip tip-right"><div class="flex justify-between text-xs mb-1"><span class="sector-icon-wrap font-medium" style="color:${s.color}">${icon}<span class="text-bronze-700">${s.name}</span></span><span class="text-bronze-400">$${s.capital} bn · ${s.count}</span></div><div class="h-2 bg-cream-200 rounded-full overflow-hidden"><div class="h-full rounded-full" style="width:${s.pct}%;background:${s.color}"></div></div><span class="tip-bubble">${def}</span></div>`}).join('')}
-function renderFunnels(){const p1=projects.filter(p=>p.priority===1).length;const engaged=interest.length;const counts=[65,p1,engaged||0,0,0];const html=PIPELINE_STAGES.map((s,i)=>`<div class="funnel-stage ${activeFunnelStage===s.id?'active-stage':''}" style="width:${s.width};background:${s.color}" data-stage="${s.id}" onclick="onFunnelClick('${s.id}')"><div class="fs-label"><span>${s.label}</span><span class="fs-anno">${s.anno}</span></div><span class="fs-count">${counts[i]||'—'}</span></div>`).join('');const n=document.getElementById('funnelNigeria'),c=document.getElementById('funnelConversion');if(n)n.innerHTML=html;if(c)c.innerHTML=html}
-function onFunnelClick(stageId){activeFunnelStage=activeFunnelStage===stageId?null:stageId;const stage=PIPELINE_STAGES.find(s=>s.id===stageId);const note=document.getElementById('funnelStageNote');if(activeFunnelStage&&stage)note.textContent=`${stage.label}: ${stage.anno}. Showing projects aligned to this stage.`;else note.textContent='All planned projects are on the map by default.';renderFunnels();refreshConversion()}
-function renderShortlist(){const p1=projects.filter(p=>p.priority===1);document.getElementById('p1Count').textContent=p1.length;document.getElementById('avgProb').textContent=Math.round(p1.reduce((s,p)=>s+p.conversionProbability,0)/(p1.length||1)*100)+'%';document.getElementById('shortlist').innerHTML=p1.map(p=>`<tr class="cursor-pointer" onclick="switchTab('conversion');setTimeout(()=>openProfile(${p.id}),50)"><td class="px-3 py-2.5"><div class="font-medium text-bronze-800">${p.name}</div><div class="text-[10px] text-bronze-400">${p.location}</div></td><td class="px-3 py-2.5 font-mono text-bronze-700 whitespace-nowrap">${formatCapital(p.capitalUSDm)}</td><td class="px-3 py-2.5">${bankBadge(p.bankability)}</td><td class="px-3 py-2.5">${probBar(p.conversionProbability)}</td><td class="px-3 py-2.5 text-[11px] text-bronze-500 max-w-[200px]">${(p.bottlenecks||[]).slice(0,2).join(' · ')}</td></tr>`).join('')}
-function renderPipelineNigeria(filter='all'){const filtered=filter==='all'?projects:projects.filter(p=>p.sector===filter);document.getElementById('pipelineNigeria').innerHTML=filtered.map(p=>`<tr class="cursor-pointer" onclick="switchTab('conversion');setTimeout(()=>openProfile(${p.id}),50)"><td class="px-3 py-2 text-bronze-400 text-xs">${p.id}</td><td class="px-3 py-2"><div class="font-medium">${p.name}</div><div class="text-[10px] text-bronze-400">${p.location}</div></td><td class="px-3 py-2 text-[11px] text-bronze-500">${p.sector}</td><td class="px-3 py-2 text-right font-mono text-bronze-700 whitespace-nowrap">${formatCapital(p.capitalUSDm)}</td><td class="px-3 py-2">${bankBadge(p.bankability)}</td><td class="px-3 py-2 font-mono text-xs">${Math.round(p.conversionProbability*100)}%</td></tr>`).join('')}
-function getFiltered(){const q=(document.getElementById('ciSearch').value||'').toLowerCase().trim();const sector=document.getElementById('ciSector').value;const priority=document.getElementById('ciPriority').value;const bank=document.getElementById('ciBank').value;const minProb=parseFloat(document.getElementById('ciProb').value)||0;return projects.filter(p=>{if(sector!=='all'&&p.sector!==sector)return false;if(priority!=='all'&&String(p.priority)!==priority)return false;if(bank!=='all'&&p.bankability!==bank)return false;if(p.conversionProbability<minProb)return false;if(activeFunnelStage){const si=stageIndex(p);const stageMap={announced:0,bankability:1,engagement:2,close:3,operational:4};const target=stageMap[activeFunnelStage];if(target===1&&si<1)return false;if(target===2&&si<2)return false;if(target>=3)return false}if(q){const hay=[p.name,p.location,p.sector,p.sponsorHint,p.financingModel,(p.bottlenecks||[]).join(' ')].join(' ').toLowerCase();if(!hay.includes(q))return false}return true})}
-function renderCiTable(list){document.getElementById('ciResultCount').textContent=list.length+' of '+projects.length+' projects';document.getElementById('ciTable').innerHTML=list.map(p=>`<tr class="cursor-pointer ${selectedId===p.id?'selected':''}" onclick="openProfile(${p.id})"><td class="px-3 py-2"><div class="font-medium text-bronze-800 text-xs">${p.name}</div><div class="text-[10px] text-bronze-400">P${p.priority} · ${formatCapital(p.capitalUSDm)}</div></td><td class="px-3 py-2">${probBar(p.conversionProbability)}</td><td class="px-3 py-2">${interestBtn(p.id)}</td></tr>`).join('')||`<tr><td colspan="3" class="px-3 py-6 text-center text-bronze-400 text-sm">No projects match</td></tr>`}
-function refreshConversion(){const list=getFiltered();renderCiTable(list);if(mapReady)renderMapMarkers(list)}
-['ciSearch','ciSector','ciPriority','ciBank','ciProb'].forEach(id=>{document.getElementById(id).addEventListener('input',refreshConversion);document.getElementById(id).addEventListener('change',refreshConversion)});
-document.getElementById('ciReset').addEventListener('click',()=>{document.getElementById('ciSearch').value='';document.getElementById('ciSector').value='all';document.getElementById('ciPriority').value='all';document.getElementById('ciBank').value='all';document.getElementById('ciProb').value='0';activeFunnelStage=null;renderFunnels();document.getElementById('funnelStageNote').textContent='All planned projects are on the map by default.';refreshConversion()});
-function openProfile(id){const p=projects.find(x=>x.id===id);if(!p)return;selectedId=id;document.getElementById('profileEmpty').classList.add('hidden');document.getElementById('profileContent').classList.remove('hidden');const img=SECTOR_IMAGES[p.sector]||SECTOR_IMAGES['Industry, Manufacturing & Mining'];document.getElementById('profileHero').style.backgroundImage=`url('${img}')`;document.getElementById('profileSectorTag').textContent=p.sector;document.getElementById('profileName').textContent=p.name;document.getElementById('profileLocation').textContent=p.location;document.getElementById('profileCapital').textContent=formatCapital(p.capitalUSDm);document.getElementById('profileBank').innerHTML=bankBadge(p.bankability);document.getElementById('profileProb').innerHTML=probBar(p.conversionProbability);document.getElementById('profilePriority').textContent='P'+p.priority;document.getElementById('profileFinance').textContent=p.financingModel||'—';document.getElementById('profileSponsor').textContent='Sponsor: '+(p.sponsorHint||'—');document.getElementById('profileBottlenecks').innerHTML=(p.bottlenecks||[]).map(b=>`<li>· ${b}</li>`).join('')||'<li>—</li>';document.getElementById('profileNext').textContent=p.nextAction||'—';document.getElementById('profileIntel').textContent=stageIntel(p);const si=stageIndex(p);document.getElementById('profileStageLabel').textContent='Current: '+PIPELINE_STAGES[si].label;document.getElementById('profilePipeline').innerHTML=PIPELINE_STAGES.map((s,i)=>{let cls='';if(i<si)cls='done';else if(i===si)cls='current';return `<div class="pipe-step ${cls}"><div class="pipe-dot">${i+1}</div><div class="pipe-name">${s.label}</div><div class="pipe-anno">${s.anno}</div></div>`}).join('');document.getElementById('profileTimeline').innerHTML=(p.timeline||[]).map(t=>`<div class="flex gap-3 text-sm"><span class="font-mono text-xs text-bronze-600 min-w-[64px] pt-0.5">${t.date}</span><span class="text-bronze-800">${t.event}</span></div>`).join('')||"<p class='text-sm text-bronze-500'>—</p>";const btn=document.getElementById('profileInterest');const on=interest.includes(p.id);btn.textContent=on?'Remove interest':'Express interest';btn.onclick=()=>toggleInterest(p.id);renderCiTable(getFiltered());document.getElementById('profilePanel').scrollIntoView({behavior:'smooth',block:'nearest'})}
-document.getElementById('profileClose').addEventListener('click',()=>{selectedId=null;document.getElementById('profileContent').classList.add('hidden');document.getElementById('profileEmpty').classList.remove('hidden');renderCiTable(getFiltered())});
-function sectorIcon(sector,priority){const color=SECTOR_COLORS[sector]||'#8b7355';const size=priority===1?15:priority===2?12:10;const svg=encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${size+8}" height="${size+8}"><circle cx="${(size+8)/2}" cy="${(size+8)/2}" r="${size/2}" fill="${color}" stroke="#fdfcfa" stroke-width="2"/>${priority===1?`<circle cx="${(size+8)/2}" cy="${(size+8)/2}" r="${size/2-2.5}" fill="none" stroke="#fdfcfa" stroke-width="1.2"/>`:''}</svg>`);return L.icon({iconUrl:`data:image/svg+xml,${svg}`,iconSize:[size+8,size+8],iconAnchor:[(size+8)/2,(size+8)/2],popupAnchor:[0,-(size/2+4)]})}
-function initMap(){map=L.map('map',{center:[9.1,8.0],zoom:6,minZoom:5,maxZoom:12});L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',{attribution:'Tiles © Esri',maxZoom:16}).addTo(map);map.setMaxBounds([[2.5,1.5],[14.5,15.5]]);markersLayer=L.layerGroup().addTo(map);document.getElementById('mapLegend').innerHTML=Object.entries(SECTOR_COLORS).map(([n,c])=>{const icon=SECTOR_ICONS[n]||'';const def=SECTOR_DEFS[n]||'';return `<span class="tip tip-right inline-flex items-center gap-1 px-1" style="color:${c}">${icon}<span class="text-bronze-600">${n.split(' & ')[0]}</span><span class="tip-bubble">${def}</span></span>`}).join('')}
-function renderMapMarkers(list){if(!markersLayer)return;markersLayer.clearLayers();const jitter={};list.forEach(p=>{if(p.lat==null||p.lng==null)return;const key=p.lat.toFixed(2)+','+p.lng.toFixed(2);jitter[key]=(jitter[key]||0)+1;const j=jitter[key]-1;const marker=L.marker([p.lat+(j%3)*0.04,p.lng+Math.floor(j/3)*0.05],{icon:sectorIcon(p.sector,p.priority),title:p.name});marker.on('click',()=>openProfile(p.id));marker.bindTooltip(p.name,{direction:'top',offset:[0,-8]});markersLayer.addLayer(marker)})}
-document.getElementById('sectorFilterNigeria').addEventListener('change',e=>renderPipelineNigeria(e.target.value));
-document.getElementById('exportInterest').addEventListener('click',()=>{const items=interest.map(id=>projects.find(p=>p.id===id)).filter(Boolean);const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify({exported:new Date().toISOString(),count:items.length,projects:items},null,2)],{type:'application/json'}));a.download='bsm-interest-list.json';a.click();toast('Interest list exported')});
-document.getElementById('clearInterest').addEventListener('click',()=>{interest=[];saveInterest();renderCiTable(getFiltered());toast('Interest list cleared')});
-async function load(){try{projects=(await(await fetch('projects.json')).json()).projects}catch(e){console.error(e);return}renderSectorBars();renderFunnels();renderShortlist();renderPipelineNigeria();renderInterest();renderCiTable(projects)}
-if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});load();
+(function () {
+  "use strict";
+  var projects = (window.EMBEDDED_PROJECTS || []).slice();
+  var map = null, markersLayer = null, mapReady = false, selectedId = null, activeFunnelStage = null;
+
+  var DELIVERY_STAGES = [
+    { id: "yet_to_start", label: "Yet to start", anno: "Pre-initiation · concept", width: "100%", color: "#71717a" },
+    { id: "initiation", label: "Initiation", anno: "Sponsor · portal listing", width: "90%", color: "#1d4ed8" },
+    { id: "bankability", label: "Bankability", anno: "IRR/DSCR · permits pack", width: "78%", color: "#b45309" },
+    { id: "engagement", label: "Engagement", anno: "LOI · site · term sheet", width: "66%", color: "#6d28d9" },
+    { id: "construction", label: "Construction", anno: "Implementation underway", width: "52%", color: "#c2410c" },
+    { id: "completion", label: "Completion", anno: "COD · operational", width: "40%", color: "#047857" }
+  ];
+  var SECTOR_COLORS = {
+    "Oil, Gas & Power": "#b45309",
+    "Transport & Maritime": "#1d4ed8",
+    "Agriculture & Agro-Processing": "#047857",
+    "Industry, Manufacturing & Mining": "#7c3aed",
+    "Technology, Health & Urban": "#be123c"
+  };
+  var SECTOR_IMAGES = {
+    "Oil, Gas & Power": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&q=80",
+    "Transport & Maritime": "https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?w=800&q=80",
+    "Agriculture & Agro-Processing": "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&q=80",
+    "Industry, Manufacturing & Mining": "https://images.unsplash.com/photo-1565793298595-6a99b0c5833f?w=800&q=80",
+    "Technology, Health & Urban": "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80"
+  };
+  var sectorsMeta = [
+    { name: "Oil, Gas & Power", capital: 36.4, count: 25, color: "#b45309", pct: 46.4 },
+    { name: "Transport & Maritime", capital: 25.0, count: 8, color: "#1d4ed8", pct: 31.8 },
+    { name: "Agriculture & Agro-Processing", capital: 9.8, count: 6, color: "#047857", pct: 12.5 },
+    { name: "Industry, Manufacturing & Mining", capital: 6.6, count: 17, color: "#7c3aed", pct: 8.4 },
+    { name: "Tech, Health & Urban", capital: 0.7, count: 9, color: "#be123c", pct: 0.9 }
+  ];
+
+  function formatCapital(c) {
+    if (c == null || isNaN(c)) return "—";
+    if (c >= 1000) return "$" + (c / 1000).toFixed(2) + " bn";
+    return "$" + Number(c).toFixed(c % 1 ? 1 : 0) + " m";
+  }
+  function bankBadge(b) {
+    var m = { High: "badge-high", "Medium-High": "badge-mh", Medium: "badge-med", "Medium-Low": "badge-ml" };
+    return '<span class="badge ' + (m[b] || "badge-med") + '">' + (b || "—") + "</span>";
+  }
+  function stageBadge(p) {
+    return '<span class="badge stage-' + (p.deliveryStage || "initiation") + '">' + (p.deliveryStageLabel || p.deliveryStage || "—") + "</span>";
+  }
+  function probBar(p) {
+    var pct = Math.round((p || 0) * 100);
+    var color = pct >= 45 ? "#047857" : pct >= 35 ? "#1d4ed8" : pct >= 28 ? "#b45309" : "#be123c";
+    return '<div class="flex items-center gap-2 min-w-[80px]"><div class="prob-bar flex-1"><div class="prob-fill" style="width:' + pct + '%;background:' + color + '"></div></div><span class="text-[11px] font-mono text-bronze-700 w-8">' + pct + '%</span></div>';
+  }
+  function stageIndex(p) {
+    var m = { yet_to_start: 0, initiation: 1, bankability: 2, engagement: 3, construction: 4, completion: 5 };
+    return m[p.deliveryStage] != null ? m[p.deliveryStage] : 1;
+  }
+  function escapeHtml(str) {
+    if (str == null) return "";
+    return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
+  function switchTab(name) {
+    var tabs = document.querySelectorAll(".tab-btn");
+    for (var i = 0; i < tabs.length; i++) tabs[i].classList.toggle("active", tabs[i].getAttribute("data-tab") === name);
+    document.getElementById("panel-nigeria").classList.toggle("hidden-tab", name !== "nigeria");
+    document.getElementById("panel-conversion").classList.toggle("hidden-tab", name !== "conversion");
+    if (name === "conversion") {
+      if (!mapReady) { initMap(); mapReady = true; }
+      setTimeout(function () { if (map) { map.invalidateSize(); renderMapMarkers(getFiltered()); } }, 120);
+    }
+  }
+  function bindTabs() {
+    var tabs = document.querySelectorAll(".tab-btn");
+    for (var i = 0; i < tabs.length; i++) {
+      tabs[i].addEventListener("click", function (e) {
+        var t = e.currentTarget.getAttribute("data-tab");
+        if (t) switchTab(t);
+      });
+    }
+  }
+  function renderSectorBars() {
+    var el = document.getElementById("sectorBars");
+    if (!el) return;
+    el.innerHTML = sectorsMeta.map(function (s) {
+      return '<div><div class="flex justify-between text-xs mb-1"><span class="text-bronze-700 font-medium sector-chip">' + escapeHtml(s.name) + '</span><span class="text-bronze-400">$' + s.capital + ' bn · ' + s.count + '</span></div><div class="h-2 bg-cream-200 rounded-full overflow-hidden"><div class="h-full rounded-full" style="width:' + s.pct + '%;background:' + s.color + '"></div></div></div>';
+    }).join("");
+  }
+  function stageCounts() {
+    var c = {};
+    for (var i = 0; i < DELIVERY_STAGES.length; i++) c[DELIVERY_STAGES[i].id] = 0;
+    for (var j = 0; j < projects.length; j++) {
+      if (c[projects[j].deliveryStage] != null) c[projects[j].deliveryStage]++;
+    }
+    return c;
+  }
+  function renderFunnels() {
+    var c = stageCounts();
+    var html = DELIVERY_STAGES.map(function (s) {
+      return '<button type="button" class="funnel-stage' + (activeFunnelStage === s.id ? ' active-stage' : '') + '" style="width:' + s.width + ';background:' + s.color + '" data-stage="' + s.id + '"><div class="fs-label"><span>' + s.label + '</span><span class="fs-anno">' + s.anno + '</span></div><span class="fs-count">' + (c[s.id] || 0) + '</span></button>';
+    }).join("");
+    var n = document.getElementById("funnelNigeria");
+    var cv = document.getElementById("funnelConversion");
+    if (n) n.innerHTML = html;
+    if (cv) cv.innerHTML = html;
+    var kc = document.getElementById("kpiComplete"); if (kc) kc.textContent = String(c.completion || 0);
+    var kb = document.getElementById("kpiBuild"); if (kb) kb.textContent = String(c.construction || 0);
+    var ky = document.getElementById("kpiYet"); if (ky) ky.textContent = String(c.yet_to_start || 0);
+    function attach(container) {
+      if (!container) return;
+      var btns = container.querySelectorAll(".funnel-stage");
+      for (var i = 0; i < btns.length; i++) {
+        btns[i].addEventListener("click", function (e) {
+          onFunnelClick(e.currentTarget.getAttribute("data-stage"));
+        });
+      }
+    }
+    attach(n); attach(cv);
+  }
+  function onFunnelClick(id) {
+    activeFunnelStage = activeFunnelStage === id ? null : id;
+    var s = null;
+    for (var i = 0; i < DELIVERY_STAGES.length; i++) if (DELIVERY_STAGES[i].id === id) s = DELIVERY_STAGES[i];
+    var note = document.getElementById("funnelStageNote");
+    if (note) note.textContent = (activeFunnelStage && s) ? (s.label + ': ' + s.anno) : 'Map shows all planned projects by default.';
+    renderFunnels();
+    refreshConversion();
+  }
+  function bindRowClicks(tbody) {
+    if (!tbody) return;
+    var rows = tbody.querySelectorAll('tr[data-id]');
+    for (var i = 0; i < rows.length; i++) {
+      rows[i].addEventListener('click', function (e) {
+        var id = parseInt(e.currentTarget.getAttribute('data-id'), 10);
+        switchTab('conversion');
+        setTimeout(function () { openProfile(id); }, 80);
+      });
+    }
+  }
+  function renderShortlist() {
+    var p1 = projects.filter(function (p) { return p.priority === 1; }).slice(0, 16);
+    var el = document.getElementById('shortlist');
+    if (!el) return;
+    el.innerHTML = p1.map(function (p) {
+      var prog = p.deliveryProgress != null ? p.deliveryProgress : 0;
+      return '<tr data-id="' + p.id + '"><td class="px-3 py-2.5"><div class="font-medium text-bronze-800">' + escapeHtml(p.name) + '</div><div class="text-[10px] text-bronze-400">' + formatCapital(p.capitalUSDm) + '</div></td><td class="px-3 py-2.5 text-sm">' + escapeHtml(p.state || '—') + '</td><td class="px-3 py-2.5">' + stageBadge(p) + '</td><td class="px-3 py-2.5"><div class="flex items-center gap-2"><div class="prob-bar flex-1 min-w-[60px]"><div class="prob-fill" style="width:' + prog + '%;background:#5c4a32"></div></div><span class="text-[11px] font-mono">' + prog + '%</span></div></td><td class="px-3 py-2.5 text-[11px] text-bronze-500">' + escapeHtml((p.fundingSources || []).slice(0, 2).join(' · ')) + '</td></tr>';
+    }).join('');
+    bindRowClicks(el);
+  }
+  function renderPipelineNigeria(filter) {
+    filter = filter || 'all';
+    var list = filter === 'all' ? projects : projects.filter(function (p) { return p.sector === filter; });
+    var el = document.getElementById('pipelineNigeria');
+    if (!el) return;
+    el.innerHTML = list.map(function (p) {
+      return '<tr data-id="' + p.id + '"><td class="px-3 py-2 text-bronze-400 text-xs">' + p.id + '</td><td class="px-3 py-2"><div class="font-medium">' + escapeHtml(p.name) + '</div></td><td class="px-3 py-2 text-sm">' + escapeHtml(p.state || '—') + '</td><td class="px-3 py-2">' + stageBadge(p) + '</td><td class="px-3 py-2 text-right font-mono whitespace-nowrap">' + formatCapital(p.capitalUSDm) + '</td><td class="px-3 py-2 text-[11px] text-bronze-500">' + escapeHtml((p.fundingSources || []).join(' · ')) + '</td></tr>';
+    }).join('');
+    bindRowClicks(el);
+  }
+  function getFiltered() {
+    var q = ((document.getElementById('ciSearch') || {}).value || '').toLowerCase().trim();
+    var sector = (document.getElementById('ciSector') || {}).value || 'all';
+    var stage = (document.getElementById('ciStage') || {}).value || 'all';
+    var priority = (document.getElementById('ciPriority') || {}).value || 'all';
+    return projects.filter(function (p) {
+      if (sector !== 'all' && p.sector !== sector) return false;
+      if (stage !== 'all' && p.deliveryStage !== stage) return false;
+      if (priority !== 'all' && String(p.priority) !== priority) return false;
+      if (activeFunnelStage && p.deliveryStage !== activeFunnelStage) return false;
+      if (q) {
+        var hay = [p.name, p.location, p.state, p.sector, p.sponsorHint, (p.fundingSources || []).join(' ')].join(' ').toLowerCase();
+        if (hay.indexOf(q) === -1) return false;
+      }
+      return true;
+    });
+  }
+  function renderCiTable(list) {
+    var countEl = document.getElementById('ciResultCount');
+    if (countEl) countEl.textContent = list.length + ' of ' + projects.length + ' projects';
+    var el = document.getElementById('ciTable');
+    if (!el) return;
+    if (!list.length) {
+      el.innerHTML = '<tr><td colspan="2" class="px-3 py-6 text-center text-bronze-400 text-sm">No match</td></tr>';
+      return;
+    }
+    el.innerHTML = list.map(function (p) {
+      return '<tr class="' + (selectedId === p.id ? 'selected' : '') + '" data-id="' + p.id + '"><td class="px-3 py-2"><div class="font-medium text-bronze-800 text-xs">' + escapeHtml(p.name) + '</div><div class="text-[10px] text-bronze-400">' + escapeHtml(p.state || '') + ' · ' + formatCapital(p.capitalUSDm) + '</div></td><td class="px-3 py-2">' + stageBadge(p) + '</td></tr>';
+    }).join('');
+    var rows = el.querySelectorAll('tr[data-id]');
+    for (var i = 0; i < rows.length; i++) {
+      rows[i].addEventListener('click', function (e) {
+        openProfile(parseInt(e.currentTarget.getAttribute('data-id'), 10));
+      });
+    }
+  }
+  function refreshConversion() {
+    var list = getFiltered();
+    renderCiTable(list);
+    if (mapReady) renderMapMarkers(list);
+  }
+  function bindFilters() {
+    ['ciSearch', 'ciSector', 'ciStage', 'ciPriority'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener('input', refreshConversion);
+      el.addEventListener('change', refreshConversion);
+    });
+    var reset = document.getElementById('ciReset');
+    if (reset) {
+      reset.addEventListener('click', function () {
+        document.getElementById('ciSearch').value = '';
+        document.getElementById('ciSector').value = 'all';
+        document.getElementById('ciStage').value = 'all';
+        document.getElementById('ciPriority').value = 'all';
+        activeFunnelStage = null;
+        renderFunnels();
+        document.getElementById('funnelStageNote').textContent = 'Map shows all planned projects by default.';
+        refreshConversion();
+      });
+    }
+    var sf = document.getElementById('sectorFilterNigeria');
+    if (sf) sf.addEventListener('change', function (e) { renderPipelineNigeria(e.target.value); });
+  }
+  function openProfile(id) {
+    var p = null;
+    for (var i = 0; i < projects.length; i++) if (projects[i].id === id) { p = projects[i]; break; }
+    if (!p) return;
+    selectedId = id;
+    document.getElementById('profileEmpty').classList.add('hidden');
+    document.getElementById('profileContent').classList.remove('hidden');
+    var img = SECTOR_IMAGES[p.sector] || SECTOR_IMAGES['Industry, Manufacturing & Mining'];
+    document.getElementById('profileHero').style.backgroundImage = "url('" + img + "')";
+    document.getElementById('profileSectorTag').textContent = p.sector || '';
+    document.getElementById('profileName').textContent = p.name || '';
+    document.getElementById('profileLocation').textContent = (p.location || '') + (p.state ? ' · ' + p.state + ' State' : '');
+    document.getElementById('profileCapital').textContent = formatCapital(p.capitalUSDm);
+    document.getElementById('profileState').textContent = p.state || '—';
+    document.getElementById('profileBank').innerHTML = bankBadge(p.bankability);
+    document.getElementById('profileProb').innerHTML = probBar(p.conversionProbability);
+    document.getElementById('profileFinance').textContent = 'Model: ' + (p.financingModel || '—');
+    document.getElementById('profileSponsor').textContent = 'Sponsor: ' + (p.sponsorHint || '—');
+    document.getElementById('profileFunding').innerHTML = (p.fundingSources || []).map(function (f) {
+      return '<li>· ' + escapeHtml(f) + '</li>';
+    }).join('') || '<li>—</li>';
+    document.getElementById('profileBottlenecks').innerHTML = (p.bottlenecks || []).map(function (b) {
+      return '<li>· ' + escapeHtml(b) + '</li>';
+    }).join('') || '<li>—</li>';
+    document.getElementById('profileNext').textContent = p.nextAction || '—';
+    var prog = p.deliveryProgress != null ? p.deliveryProgress : 0;
+    document.getElementById('profileProgressPct').textContent = prog + '%';
+    document.getElementById('profileProgressBar').style.width = prog + '%';
+    var si = stageIndex(p);
+    document.getElementById('profileStageLabel').textContent = 'Current: ' + (p.deliveryStageLabel || '');
+    document.getElementById('profilePipeline').innerHTML = DELIVERY_STAGES.map(function (s, i) {
+      var cls = i < si ? 'done' : i === si ? 'current' : '';
+      return '<div class="pipe-step ' + cls + '"><div class="pipe-dot">' + (i + 1) + '</div><div class="pipe-name">' + s.label + '</div></div>';
+    }).join('');
+    document.getElementById('profileTimeline').innerHTML = (p.timeline || []).map(function (t) {
+      return '<div class="flex gap-3 text-sm"><span class="font-mono text-xs text-bronze-600 min-w-[64px] pt-0.5">' + escapeHtml(t.date) + '</span><span class="text-bronze-800">' + escapeHtml(t.event) + '</span></div>';
+    }).join('') || '<p class="text-sm text-bronze-500">—</p>';
+    renderCiTable(getFiltered());
+  }
+  function sectorIcon(sector, priority, stateName) {
+    var color = SECTOR_COLORS[sector] || '#8b7355';
+    var size = priority === 1 ? 14 : 11;
+    var label = (stateName || '').replace(/&/g, '&amp;').replace(/</g, '').substring(0, 10);
+    var svg = encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="72" height="28"><circle cx="10" cy="14" r="' + (size / 2) + '" fill="' + color + '" stroke="#fff" stroke-width="2"/><rect x="20" y="6" width="50" height="16" rx="3" fill="rgba(255,255,255,0.95)" stroke="#e2d6c4"/><text x="24" y="17" font-family="Helvetica Neue,Helvetica,Arial,sans-serif" font-size="9" font-weight="700" fill="#5c4a32">' + label + '</text></svg>');
+    return L.icon({ iconUrl: 'data:image/svg+xml,' + svg, iconSize: [72, 28], iconAnchor: [10, 14], popupAnchor: [0, -12] });
+  }
+  function initMap() {
+    if (typeof L === 'undefined') return;
+    map = L.map('map', { center: [9.1, 8.0], zoom: 6, minZoom: 5, maxZoom: 12 });
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles © Esri · BSM demo', maxZoom: 16
+    }).addTo(map);
+    map.setMaxBounds([[2.5, 1.5], [14.5, 15.5]]);
+    markersLayer = L.layerGroup().addTo(map);
+    var legend = document.getElementById('mapLegend');
+    if (legend) {
+      legend.innerHTML = Object.keys(SECTOR_COLORS).map(function (n) {
+        return '<span class="inline-flex items-center gap-1 tip"><span style="width:8px;height:8px;border-radius:50%;background:' + SECTOR_COLORS[n] + '"></span>' + n.split(' & ')[0] + '<span class="tip-box">' + n + '</span></span>';
+      }).join('');
+    }
+  }
+  function renderMapMarkers(list) {
+    if (!markersLayer) return;
+    markersLayer.clearLayers();
+    var jitter = {};
+    for (var i = 0; i < list.length; i++) {
+      var p = list[i];
+      if (p.lat == null || p.lng == null) continue;
+      var key = p.lat.toFixed(2) + ',' + p.lng.toFixed(2);
+      jitter[key] = (jitter[key] || 0) + 1;
+      var j = jitter[key] - 1;
+      (function (proj) {
+        var marker = L.marker([proj.lat + (j % 3) * 0.05, proj.lng + Math.floor(j / 3) * 0.06], {
+          icon: sectorIcon(proj.sector, proj.priority, proj.state),
+          title: proj.name + ' · ' + (proj.state || '')
+        });
+        marker.on('click', function () { openProfile(proj.id); });
+        marker.bindTooltip(proj.name + ' · ' + (proj.deliveryStageLabel || ''), { direction: 'top', offset: [0, -10] });
+        markersLayer.addLayer(marker);
+      })(p);
+    }
+  }
+  function load() {
+    if (!projects.length) {
+      console.error('No embedded projects — ensure data.js loads before app.js');
+      return;
+    }
+    bindTabs();
+    bindFilters();
+    var closeBtn = document.getElementById('profileClose');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function () {
+        selectedId = null;
+        document.getElementById('profileContent').classList.add('hidden');
+        document.getElementById('profileEmpty').classList.remove('hidden');
+        renderCiTable(getFiltered());
+      });
+    }
+    renderSectorBars();
+    renderFunnels();
+    renderShortlist();
+    renderPipelineNigeria('all');
+    renderCiTable(projects);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', load);
+  else load();
+})();
