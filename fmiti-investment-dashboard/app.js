@@ -1,6 +1,6 @@
 (function () {
   "use strict";
-  var projects = [];
+  var projects = (typeof window !== "undefined" && window.EMBEDDED_PROJECTS && window.EMBEDDED_PROJECTS.length) ? window.EMBEDDED_PROJECTS.slice() : [];
   var map = null;
   var markersLayer = null;
   var mapReady = false;
@@ -55,7 +55,7 @@
   function probBar(p) {
     var pct = Math.round((p || 0) * 100);
     var color = pct >= 45 ? "#047857" : pct >= 35 ? "#1d4ed8" : pct >= 28 ? "#b45309" : "#be123c";
-    return '<div class="flex items-center gap-2 min-w-[80px]"><div class="prob-bar flex-1"><div class="prob-fill" style="width:' + pct + '%;background:' + color + '"></div></div><span class="text-[11px] font-mono text-bronze-700 w-8">' + pct + "%</span></div>";
+    return '<div class="flex items-center gap-2 min-w-[80px]"><div class="prob-bar flex-1"><div class="prob-fill" style="width:' + pct + '%;background:' + color + '"></div></div><span class="text-[11px] font-mono text-bronze-700 w-8">' + pct + '%</span></div>';
   }
   function stageIndex(p) {
     var m = { yet_to_start: 0, initiation: 1, bankability: 2, engagement: 3, construction: 4, completion: 5 };
@@ -334,22 +334,21 @@
       renderPipelineNigeria("all");
       renderCiTable(projects);
     }
-    function loadParts() {
-      return Promise.all([
-        fetch("projects-part0.json").then(function (r) { return r.ok ? r.json() : { projects: [] }; }).catch(function () { return { projects: [] }; }),
-        fetch("projects-part1.json").then(function (r) { return r.ok ? r.json() : { projects: [] }; }).catch(function () { return { projects: [] }; }),
-        fetch("projects-part2.json").then(function (r) { return r.ok ? r.json() : { projects: [] }; }).catch(function () { return { projects: [] }; })
-      ]).then(function (parts) {
-        var merged = [];
-        for (var i = 0; i < parts.length; i++) {
-          var arr = (parts[i] && parts[i].projects) ? parts[i].projects : [];
-          for (var j = 0; j < arr.length; j++) merged.push(arr[j]);
-        }
-        return merged;
-      });
+    if (projects && projects.length >= 20) {
+      renderAll();
+      return;
     }
-    loadParts().then(function (merged) {
-      if (merged && merged.length >= 20) {
+    Promise.all([
+      fetch("projects-part0.json").then(function (r) { return r.ok ? r.json() : { projects: [] }; }).catch(function () { return { projects: [] }; }),
+      fetch("projects-part1.json").then(function (r) { return r.ok ? r.json() : { projects: [] }; }).catch(function () { return { projects: [] }; }),
+      fetch("projects-part2.json").then(function (r) { return r.ok ? r.json() : { projects: [] }; }).catch(function () { return { projects: [] }; })
+    ]).then(function (parts) {
+      var merged = [];
+      for (var i = 0; i < parts.length; i++) {
+        var arr = (parts[i] && parts[i].projects) ? parts[i].projects : [];
+        for (var j = 0; j < arr.length; j++) merged.push(arr[j]);
+      }
+      if (merged.length >= 20) {
         projects = merged;
         renderAll();
         return;
