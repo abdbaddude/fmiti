@@ -1,18 +1,21 @@
 # Nigeria National Investment Conversion & Delivery Assurance
 
-**Beth Schwarz & Myers** demo for FMITI / NIPC.
+**Beth Schwarz & Myers** · v1.0.0 demo
 
-> **Demo notice:** Pipeline stages, progress, dates and funding mixes are **simulated** for illustration, structured like the Projects Nigeria tree.
+> **DEMO** — Simulated stages, dates, progress and funding. Not official FMITI data.
+
+## Run locally
+```bash
+cd fmiti-investment-dashboard
+python3 -m http.server 8765
+# open http://127.0.0.1:8765
+```
 
 ## Features
-- Visual delivery funnel (yet to start → operational)
-- Map with **state name labels** on each project marker
-- Funding / finance sources per project
-- Rich intelligence profiles
-- White BSM-branded UI
+- Self-contained SPA (no build step)
+- Delivery funnel: yet to start → completion
+- Map with **state names** on markers + BSM badge
+- Funding sources per project
+- Helvetica Neue · white theme
 
-## Local
-Serve `fmiti-investment-dashboard/` statically.
-
-## Repo
-https://github.com/abdbaddude/fmiti
+Branch: `v1.0.0`
