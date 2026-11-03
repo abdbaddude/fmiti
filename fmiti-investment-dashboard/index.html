@@ -54,6 +54,9 @@ table.data tbody tr:hover{background:#fafafa;cursor:pointer}table.data tbody tr.
 .map-bsm-badge{position:absolute;bottom:12px;left:12px;z-index:500;background:rgba(255,255,255,.95);border:1px solid #e2d6c4;border-radius:8px;padding:6px 10px;display:flex;align-items:center;gap:8px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
 .tip{position:relative}.tip:hover .tip-box{opacity:1;visibility:visible}
 .tip-box{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#2a2218;color:#fff;font-size:11px;padding:6px 10px;border-radius:6px;opacity:0;visibility:hidden;transition:.15s;z-index:40;pointer-events:none;max-width:220px;white-space:normal;text-align:center}
+#netGraph svg{width:100%;height:100%}
+.net-node{cursor:pointer}.net-node:hover circle{stroke-width:3}
+.net-label{font-size:9px;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;fill:#3d3224;pointer-events:none}
 </style>
 </head>
 <body class="min-h-screen bg-white">
@@ -64,7 +67,7 @@ table.data tbody tr:hover{background:#fafafa;cursor:pointer}table.data tbody tr.
 <img src="bsm-logo.png" alt="BSM" class="h-11 w-11 object-contain shrink-0" onerror="this.style.display='none'"/>
 <div class="min-w-0">
 <h1 class="font-display text-base sm:text-lg text-bronze-800 tracking-tight leading-tight">Nigeria National Investment Conversion &amp; Delivery Assurance</h1>
-<p class="text-[11px] text-bronze-500 truncate">Beth Schwarz &amp; Myers · FMITI / NIPC pilot · v1.1.1</p>
+<p class="text-[11px] text-bronze-500 truncate">Beth Schwarz &amp; Myers · FMITI / NIPC pilot · v1.2.0</p>
 </div></div>
 <div class="flex items-center gap-2 shrink-0">
 <label class="text-[10px] uppercase tracking-wider text-bronze-500 font-semibold hidden sm:inline">Currency</label>
@@ -77,9 +80,10 @@ table.data tbody tr:hover{background:#fafafa;cursor:pointer}table.data tbody tr.
 </div>
 </div>
 <div class="max-w-7xl mx-auto px-4 sm:px-6 pb-3">
-<nav class="inline-flex gap-1 p-1 rounded-full bg-cream-200/80 border border-cream-300">
+<nav class="inline-flex gap-1 p-1 rounded-full bg-cream-200/80 border border-cream-300 flex-wrap">
 <button type="button" class="tab-btn active tip" data-tab="nigeria" id="tab-nigeria"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h14"/><circle cx="18" cy="12" r="2"/></svg> Pipeline overview<span class="tip-box">Sector capital mix, delivery funnel counts and full project list</span></button>
 <button type="button" class="tab-btn tip" data-tab="conversion" id="tab-conversion"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 3v18M5 8l7-5 7 5M5 16l7 5 7-5"/></svg> Conversion &amp; delivery<span class="tip-box">Map, filters, bankability and delivery intelligence profiles</span></button>
+<button type="button" class="tab-btn tip" data-tab="network" id="tab-network"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="18" r="2.5"/><circle cx="12" cy="12" r="2.5"/><path d="M8.2 7.2l3.6 3.6M15.8 7.2l-3.6 3.6M8.2 16.8l3.6-3.6M15.8 16.8l-3.6-3.6"/></svg> Network signal<span class="tip-box">Projects · states · funders · FMITI links</span></button>
 </nav></div></header>
 <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
 <div id="panel-nigeria" class="space-y-6">
@@ -164,7 +168,7 @@ table.data tbody tr:hover{background:#fafafa;cursor:pointer}table.data tbody tr.
 <p class="text-[11px] text-bronze-400 mt-2" id="ciResultCount"></p></section>
 <div class="grid lg:grid-cols-5 gap-5">
 <section class="lg:col-span-2 card p-5"><h2 class="font-display text-base text-bronze-800 mb-1">Delivery funnel</h2><p class="text-[11px] text-bronze-500 mb-3">Click a stage to filter the map and list</p><div class="funnel-wrap" id="funnelConversion"></div><p class="text-[11px] text-bronze-500 mt-3" id="funnelStageNote">Map shows all planned projects by default.</p></section>
-<section class="lg:col-span-3 card p-4 sm:p-5 relative"><div class="flex flex-wrap items-center justify-between gap-2 mb-3"><div><h2 class="font-display text-base text-bronze-800 flex items-center gap-2">Nigeria project map</h2><p class="text-[11px] text-bronze-500 mt-0.5">State name on markers · click for profile</p></div><div class="flex flex-wrap gap-2 text-[10px] text-bronze-600" id="mapLegend"></div></div>
+<section class="lg:col-span-3 card p-4 sm:p-5 relative"><div class="flex flex-wrap items-center justify-between gap-2 mb-3"><div><h2 class="font-display text-base text-bronze-800">Nigeria project map</h2><p class="text-[11px] text-bronze-500 mt-0.5">State name on markers · click for profile</p></div><div class="flex flex-wrap gap-2 text-[10px] text-bronze-600" id="mapLegend"></div></div>
 <div class="relative"><div id="map" class="border border-cream-300"></div>
 <div class="map-bsm-badge"><img src="bsm-logo.png" alt="" class="h-7 w-7 object-contain" onerror="this.style.display='none'"/><div><div class="text-[10px] font-semibold text-bronze-800 leading-tight">Beth Schwarz &amp; Myers</div><div class="text-[9px] text-bronze-500">Delivery assurance map</div></div></div></div></section></div>
 <div class="grid lg:grid-cols-5 gap-5">
@@ -189,8 +193,54 @@ table.data tbody tr:hover{background:#fafafa;cursor:pointer}table.data tbody tr.
 <div class="rounded-lg border border-bronze-500/30 bg-cream-100 p-4"><h4 class="text-xs font-semibold uppercase tracking-wider text-bronze-600 mb-1">Recommended next action</h4><p class="text-sm text-bronze-800 font-medium" id="profileNext"></p></div>
 <button type="button" id="profileClose" class="btn-ghost">Close profile</button>
 </div></div></div></section></div></div>
+<div id="panel-network" class="space-y-6 hidden-tab">
+<section class="card p-4">
+<div class="flex flex-wrap gap-3 items-end">
+<div class="flex-1 min-w-[160px]"><label class="block text-[10px] uppercase tracking-wider text-bronze-500 font-semibold mb-1">Search</label><input type="search" id="netSearch" class="input-bsm w-full" placeholder="Project, state, funding…"/></div>
+<div><label class="block text-[10px] uppercase tracking-wider text-bronze-500 font-semibold mb-1">Sector</label><select id="netSector" class="input-bsm"><option value="all">All</option><option value="Oil, Gas & Power">Oil, Gas & Power</option><option value="Transport & Maritime">Transport & Maritime</option><option value="Agriculture & Agro-Processing">Agriculture</option><option value="Industry, Manufacturing & Mining">Industry</option><option value="Technology, Health & Urban">Tech / Health / Urban</option></select></div>
+<div><label class="block text-[10px] uppercase tracking-wider text-bronze-500 font-semibold mb-1">Priority</label><select id="netPriority" class="input-bsm"><option value="all">All</option><option value="1">P1</option><option value="2">P2</option><option value="3">P3</option></select></div>
+<div><label class="block text-[10px] uppercase tracking-wider text-bronze-500 font-semibold mb-1">Layout</label>
+<div class="inline-flex rounded-lg border border-cream-300 overflow-hidden">
+<button type="button" id="netLayoutNetwork" class="px-3 py-1.5 text-xs font-semibold bg-bronze-700 text-white">Network</button>
+<button type="button" id="netLayoutVenn" class="px-3 py-1.5 text-xs font-semibold text-bronze-600 bg-white">Venn</button>
+</div></div>
+<button type="button" id="netReset" class="btn-ghost">Reset</button>
+</div>
+<p class="text-[11px] text-bronze-400 mt-2" id="netResultCount"></p>
+</section>
+<section class="grid grid-cols-2 md:grid-cols-4 gap-3" id="netKpis">
+<div class="card p-3"><p class="kpi-label">Visible capital</p><p class="kpi-value text-lg mt-0.5" id="netKpiCap">—</p></div>
+<div class="card p-3"><p class="kpi-value text-lg mt-0.5" id="netKpiProj">—</p><p class="kpi-label">Projects</p></div>
+<div class="card p-3"><p class="kpi-label">States</p><p class="kpi-value text-lg mt-0.5" id="netKpiStates">—</p></div>
+<div class="card p-3"><p class="kpi-label">Funders</p><p class="kpi-value text-lg mt-0.5" id="netKpiFund">—</p></div>
+</section>
+<section class="card p-4 relative">
+<div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+<h2 class="font-display text-base text-bronze-800">Capital network</h2>
+<div class="flex flex-wrap gap-3 text-[10px] text-bronze-600">
+<span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-bronze-700"></span>FMITI</span>
+<span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full" style="background:#1d4ed8"></span>State</span>
+<span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full" style="background:#b45309"></span>Funder</span>
+<span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full" style="background:#047857"></span>Project</span>
+</div>
+</div>
+<p class="text-[11px] text-bronze-500 mb-3" id="netLayoutNote">Force-style network · every project links to FMITI · filter drives graph</p>
+<div id="netGraph" class="w-full border border-cream-300 rounded-xl bg-cream-50 overflow-hidden" style="height:520px;position:relative"></div>
+<div id="netVennSets" class="hidden flex flex-wrap gap-3 mt-3 text-[11px]">
+<label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="vennP1" class="rounded" checked/> P1 priority</label>
+<label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="vennBank" class="rounded" checked/> High bankability</label>
+<label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="vennAdv" class="rounded" checked/> Construction / completion</label>
+<span class="text-bronze-400">(any combination or none)</span>
+</div>
+</section>
+<section class="card p-4">
+<h2 class="font-display text-base text-bronze-800 mb-2">Selected node</h2>
+<div id="netNodeEmpty" class="text-sm text-bronze-500">Click a node to inspect links.</div>
+<div id="netNodeDetail" class="hidden text-sm text-bronze-800 space-y-1"></div>
+</section>
+</div>
 </main>
-<footer class="border-t border-cream-300 mt-10 py-8 bg-white"><div class="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left"><div class="flex items-center gap-2"><img src="bsm-logo.png" alt="" class="h-8 w-8 object-contain" onerror="this.style.display='none'"/><div><p class="font-display text-sm text-bronze-800">Beth Schwarz &amp; Myers</p><p class="text-[11px] text-bronze-500">Investment · Trade · Development intelligence</p></div></div><p class="text-[11px] text-bronze-400 max-w-md">Demo only · Simulated stages, dates and funding · Not official FMITI data · v1.1.1</p></div></footer>
+<footer class="border-t border-cream-300 mt-10 py-8 bg-white"><div class="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left"><div class="flex items-center gap-2"><img src="bsm-logo.png" alt="" class="h-8 w-8 object-contain" onerror="this.style.display='none'"/><div><p class="font-display text-sm text-bronze-800">Beth Schwarz &amp; Myers</p><p class="text-[11px] text-bronze-500">Investment · Trade · Development intelligence</p></div></div><p class="text-[11px] text-bronze-400 max-w-md">Demo only · Simulated stages, dates and funding · Not official FMITI data · v1.2.0</p></div></footer>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="./data-a.js"></script>
 <script src="./data-b.js"></script>
