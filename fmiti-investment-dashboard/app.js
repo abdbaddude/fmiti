@@ -29,20 +29,20 @@
   var NG_PAGE_SIZE = 10;
 
   function formatCapital(c) {
-    if (c == null || isNaN(c)) return "—";
+    if (c == null || isNaN(c)) return "-";
     var usd = Number(c);
     if (displayCurrency === "NGN") {
       var ngn = usd * FX_NGN_PER_USD;
-      if (ngn >= 1e6) return "₦" + (ngn / 1e6).toFixed(2) + " tn";
-      if (ngn >= 1000) return "₦" + (ngn / 1000).toFixed(1) + " bn";
-      return "₦" + Math.round(ngn).toLocaleString() + " m";
+      if (ngn >= 1e6) return "NGN " + (ngn / 1e6).toFixed(2) + " tn";
+      if (ngn >= 1000) return "NGN " + (ngn / 1000).toFixed(1) + " bn";
+      return "NGN " + Math.round(ngn).toLocaleString() + " m";
     }
     if (usd >= 1000) return "$" + (usd / 1000).toFixed(2) + " bn";
     return "$" + usd.toFixed(usd % 1 ? 1 : 0) + " m";
   }
   function bankBadge(b) {
     var m = { High: "badge-high", "Medium-High": "badge-mh", Medium: "badge-med", "Medium-Low": "badge-ml", "Low-Medium": "badge-low" };
-    return '<span class="badge ' + (m[b] || "badge-med") + '">' + (b || "—") + "</span>';
+    return '<span class="badge ' + (m[b] || "badge-med") + '">' + (b || "-") + '</span>';
   }
   function sectorIconSvg(sector) {
     var s = sector || "";
@@ -63,12 +63,12 @@
   }
   function stageBadge(p) {
     var st = p.deliveryStage || "initiation";
-    return '<span class="badge stage-' + st + ' inline-flex items-center">' + stageIconSvg(st) + (p.deliveryStageLabel || st) + "</span>";
+    return '<span class="badge stage-' + st + ' inline-flex items-center">' + stageIconSvg(st) + (p.deliveryStageLabel || st) + '</span>';
   }
   function priorityBadge(pr) {
     var p = Number(pr) || 3;
     var cls = p === 1 ? "badge-high" : p === 2 ? "badge-mh" : "badge-med";
-    return '<span class="badge ' + cls + '">P' + p + "</span>";
+    return '<span class="badge ' + cls + '">P' + p + '</span>';
   }
   function probBar(p) {
     var pct = Math.round((p || 0) * 100);
@@ -81,7 +81,7 @@
   }
   function escapeHtml(str) {
     if (str == null) return "";
-    return String(str).replace(/&/g, "&").replace(/</g, "<").replace(/>/g, ">").replace(/"/g, """);
+    return String(str).replace(/&/g, "&"+"amp;").replace(/</g, "&"+"lt;").replace(/>/g, "&"+"gt;").replace(/"/g, "&"+"quot;");
   }
   window.formatCapital = formatCapital;
   window.escapeHtml = escapeHtml;
@@ -120,7 +120,7 @@
     if (!el) return;
     el.innerHTML = sectorsMeta.map(function (s) {
       var capLabel = displayCurrency === "NGN"
-        ? ("₦" + (s.capital * FX_NGN_PER_USD / 1000).toFixed(1) + " tn · " + s.count)
+        ? ("NGN " + (s.capital * FX_NGN_PER_USD / 1000).toFixed(1) + " tn · " + s.count)
         : ("$" + s.capital + " bn · " + s.count);
       return '<div><div class="flex justify-between text-xs mb-1"><span class="text-bronze-700 font-medium sector-chip inline-flex items-center">' + sectorIconSvg(s.name) + s.name + '</span><span class="text-bronze-400">' + capLabel + '</span></div><div class="h-2 bg-cream-200 rounded-full overflow-hidden"><div class="h-full rounded-full" style="width:' + s.pct + '%;background:' + s.color + '"></div></div></div>';
     }).join("");
@@ -136,7 +136,7 @@
   function renderFunnels() {
     var c = stageCounts();
     var html = DELIVERY_STAGES.map(function (s) {
-      return '<button type="button" class="funnel-stage' + (activeFunnelStage === s.id ? " active-stage" : "") + '" style="width:' + s.width + ';background:' + s.color + '" data-stage="' + s.id + '"><div class="fs-label"><span>' + s.label + '</span><span class="fs-anno">' + s.anno + '</span></div><span class="fs-count">' + (c[s.id] || 0) + "</span></button>";
+      return '<button type="button" class="funnel-stage' + (activeFunnelStage === s.id ? " active-stage" : "") + '" style="width:' + s.width + ';background:' + s.color + '" data-stage="' + s.id + '"><div class="fs-label"><span>' + s.label + '</span><span class="fs-anno">' + s.anno + '</span></div><span class="fs-count">' + (c[s.id] || 0) + '</span></button>';
     }).join("");
     var n = document.getElementById("funnelNigeria");
     var cv = document.getElementById("funnelConversion");
@@ -209,12 +209,12 @@
           '<td class="px-3 py-2.5 text-bronze-400 text-xs font-mono">' + p.id + '</td>' +
           '<td class="px-3 py-2.5"><div class="font-medium text-bronze-800">' + escapeHtml(p.name) + '</div></td>' +
           '<td class="px-3 py-2.5 text-sm whitespace-nowrap" title="' + escapeHtml(p.sector || '') + '"><span class="inline-flex items-center">' + sectorIconSvg(p.sector) + '<span class="text-bronze-700">' + escapeHtml((p.sector || '').split(',')[0]) + '</span></span></td>' +
-          '<td class="px-3 py-2.5 text-sm">' + escapeHtml(p.state || '—') + '</td>' +
+          '<td class="px-3 py-2.5 text-sm">' + escapeHtml(p.state || '-') + '</td>' +
           '<td class="px-3 py-2.5">' + stageBadge(p) + '</td>' +
           '<td class="px-3 py-2.5"><div class="flex items-center gap-2 min-w-[90px]"><div class="prob-bar flex-1"><div class="prob-fill" style="width:' + prog + '%;background:#5c4a32"></div></div><span class="text-[11px] font-mono text-bronze-700">' + prog + '%</span></div></td>' +
           '<td class="px-3 py-2.5 text-right font-mono whitespace-nowrap text-sm">' + formatCapital(p.capitalUSDm) + '</td>' +
           '<td class="px-3 py-2.5">' + priorityBadge(p.priority) + '</td>' +
-          '<td class="px-3 py-2.5 text-[11px] text-bronze-500 max-w-[140px] truncate" title="' + escapeHtml((p.fundingSources || []).join(' · ')) + '">' + escapeHtml((p.fundingSources || []).slice(0, 2).join(' · ') || '—') + '</td>' +
+          '<td class="px-3 py-2.5 text-[11px] text-bronze-500 max-w-[140px] truncate" title="' + escapeHtml((p.fundingSources || []).join(' · ')) + '">' + escapeHtml((p.fundingSources || []).slice(0, 2).join(' · ') || '-') + '</td>' +
           '</tr>';
       }).join('');
     }
@@ -222,7 +222,7 @@
     var countEl = document.getElementById('ngResultCount');
     if (countEl) countEl.textContent = total + ' of ' + projects.length + ' projects';
     var info = document.getElementById('ngPageInfo');
-    if (info) info.textContent = total ? ('Page ' + ngPage + ' of ' + pages + ' · showing ' + (start + 1) + '–' + Math.min(start + NG_PAGE_SIZE, total)) : 'No results';
+    if (info) info.textContent = total ? ('Page ' + ngPage + ' of ' + pages + ' · showing ' + (start + 1) + '-' + Math.min(start + NG_PAGE_SIZE, total)) : 'No results';
     var prev = document.getElementById('ngPrev');
     var next = document.getElementById('ngNext');
     if (prev) prev.disabled = ngPage <= 1;
@@ -237,7 +237,7 @@
     if (kpi) {
       if (displayCurrency === 'NGN') {
         var tn = (78.5 * FX_NGN_PER_USD / 1000);
-        kpi.innerHTML = '₦' + tn.toFixed(1) + '<span class="text-base font-medium text-bronze-500"> tn</span>';
+        kpi.innerHTML = 'NGN ' + tn.toFixed(1) + '<span class="text-base font-medium text-bronze-500"> tn</span>';
       } else {
         kpi.innerHTML = '$78.5' + '<span class="text-base font-medium text-bronze-500">bn</span>';
       }
@@ -341,18 +341,18 @@
     document.getElementById('profileName').textContent = p.name || '';
     document.getElementById('profileLocation').textContent = (p.location || '') + (p.state ? ' · ' + p.state + ' State' : '');
     document.getElementById('profileCapital').textContent = formatCapital(p.capitalUSDm);
-    document.getElementById('profileState').textContent = p.state || '—';
+    document.getElementById('profileState').textContent = p.state || '-';
     document.getElementById('profileBank').innerHTML = bankBadge(p.bankability);
     document.getElementById('profileProb').innerHTML = probBar(p.conversionProbability);
-    document.getElementById('profileFinance').textContent = 'Model: ' + (p.financingModel || '—');
-    document.getElementById('profileSponsor').textContent = 'Sponsor: ' + (p.sponsorHint || '—');
+    document.getElementById('profileFinance').textContent = 'Model: ' + (p.financingModel || '-');
+    document.getElementById('profileSponsor').textContent = 'Sponsor: ' + (p.sponsorHint || '-');
     document.getElementById('profileFunding').innerHTML = (p.fundingSources || []).map(function (f) {
       return '<li>· ' + escapeHtml(f) + '</li>';
-    }).join('') || '<li>—</li>';
+    }).join('') || '<li>-</li>';
     document.getElementById('profileBottlenecks').innerHTML = (p.bottlenecks || []).map(function (b) {
       return '<li>· ' + escapeHtml(b) + '</li>';
-    }).join('') || '<li>—</li>';
-    document.getElementById('profileNext').textContent = p.nextAction || '—';
+    }).join('') || '<li>-</li>';
+    document.getElementById('profileNext').textContent = p.nextAction || '-';
     var prog = p.deliveryProgress != null ? p.deliveryProgress : 0;
     document.getElementById('profileProgressPct').textContent = prog + '%';
     document.getElementById('profileProgressBar').style.width = prog + '%';
@@ -364,7 +364,7 @@
     }).join('');
     document.getElementById('profileTimeline').innerHTML = (p.timeline || []).map(function (t) {
       return '<div class="flex gap-3 text-sm"><span class="font-mono text-xs text-bronze-600 min-w-[64px] pt-0.5">' + escapeHtml(t.date) + '</span><span class="text-bronze-800">' + escapeHtml(t.event) + '</span></div>';
-    }).join('') || '<p class="text-sm text-bronze-500">—</p>';
+    }).join('') || '<p class="text-sm text-bronze-500">-</p>';
     renderCiTable(getFiltered());
   }
   window.openProfile = openProfile;
@@ -372,7 +372,7 @@
   function sectorIcon(sector, priority, stateName) {
     var color = SECTOR_COLORS[sector] || '#8b7355';
     var size = priority === 1 ? 14 : 11;
-    var label = (stateName || '').replace(/&/g, '&').replace(/</g, '').substring(0, 10);
+    var label = (stateName || '').replace(/&/g, '&'+'amp;').replace(/</g, '').substring(0, 10);
     var svg = encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="72" height="28"><circle cx="10" cy="14" r="' + (size / 2) + '" fill="' + color + '" stroke="#fff" stroke-width="2"/><rect x="20" y="6" width="50" height="16" rx="3" fill="rgba(255,255,255,0.95)" stroke="#e2d6c4"/><text x="24" y="17" font-family="Helvetica Neue,Helvetica,Arial,sans-serif" font-size="9" font-weight="700" fill="#5c4a32">' + label + '</text></svg>');
     return L.icon({ iconUrl: 'data:image/svg+xml,' + svg, iconSize: [72, 28], iconAnchor: [10, 14], popupAnchor: [0, -12] });
   }
@@ -380,7 +380,7 @@
     if (typeof L === 'undefined') return;
     map = L.map('map', { center: [9.1, 8.0], zoom: 6, minZoom: 5, maxZoom: 12 });
     L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
-      attribution: 'Tiles © Esri · BSM demo', maxZoom: 16
+      attribution: 'Tiles Esri · BSM demo', maxZoom: 16
     }).addTo(map);
     map.setMaxBounds([[2.5, 1.5], [14.5, 15.5]]);
     markersLayer = L.layerGroup().addTo(map);
