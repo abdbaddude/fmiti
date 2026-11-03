@@ -8,19 +8,17 @@
 <link rel="manifest" href="manifest.json"/>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://cdn.tailwindcss.com"></script>
-<script>tailwind.config={theme:{extend:{colors:{cream:{50:'#ffffff',100:'#fafafa',200:'#f0ebe3',300:'#e2d6c4'},bronze:{400:'#a08968',500:'#8b7355',600:'#6b5b45',700:'#5c4a32',800:'#3d3224',900:'#2a2218'}},fontFamily:{sans:['"Helvetica Neue"','Helvetica','Arial','sans-serif']}}}}</script>
+<script>tailwind.config={theme:{extend:{colors:{cream:{50:'#ffffff',100:'#fafafa',200:'#f0ebe3',300:'#e2d6c4'},bronze:{400:'#a08968',500:'#8b7355',600:'#6b5b45',700:'#5c4a32',800:'#3d3224',900:'#2a2218'}},fontFamily:{sans:['\"Helvetica Neue\"','Helvetica','Arial','sans-serif']}}}}</script>
 <style>
-*{box-sizing:border-box}
-body{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;background:#ffffff;color:#2a2218;margin:0}
-.font-display{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-weight:600;letter-spacing:-0.01em}
+*{box-sizing:border-box}body{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;background:#fff;color:#2a2218;margin:0}
+.font-display{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-weight:600}
 .card{background:#fff;border:1px solid #e2d6c4;border-radius:12px;box-shadow:0 1px 2px rgba(61,50,36,.04)}
 .tab-btn{font-size:13px;font-weight:600;padding:.55rem 1.1rem;border-radius:9999px;color:#6b5b45;display:inline-flex;align-items:center;gap:.4rem;border:none;background:transparent;cursor:pointer;font-family:inherit}
 .tab-btn:hover{background:#f0ebe3;color:#3d3224}.tab-btn.active{background:#5c4a32;color:#fff}
 .kpi-label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#8b7355;font-weight:600}
-.kpi-value{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-weight:700;font-size:1.75rem;color:#2a2218;line-height:1.1}
+.kpi-value{font-weight:700;font-size:1.75rem;color:#2a2218;line-height:1.1}
 .prob-bar{height:6px;border-radius:9999px;background:#f0ebe3;overflow:hidden}.prob-fill{height:100%;border-radius:9999px}
 #map{height:440px;border-radius:10px;z-index:1;background:#f5f5f5}
-.leaflet-container{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif}
 .input-bsm{background:#fff;border:1px solid #e2d6c4;border-radius:8px;padding:.45rem .75rem;font-size:13px;color:#2a2218;font-family:inherit}
 .btn-bronze{background:#5c4a32;color:#fff;border-radius:8px;font-size:12px;font-weight:600;padding:.4rem .85rem;border:none;cursor:pointer;font-family:inherit}
 .btn-ghost{background:transparent;color:#6b5b45;border:1px solid #e2d6c4;border-radius:8px;font-size:12px;padding:.4rem .85rem;cursor:pointer;font-family:inherit}
@@ -52,12 +50,12 @@ table.data tbody tr:hover{background:#fafafa}table.data tbody tr.selected{backgr
 .load-error{background:#fef2f2;border:1px solid #fecaca;color:#991b1b;padding:12px 16px;border-radius:8px;margin-bottom:16px}
 </style>
 </head>
-<body class="min-h-screen bg-white" style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif">
-<div class="demo-banner px-4 py-2.5 text-center font-medium"><strong>DEMO</strong> — This application uses <em>simulated / synthetic</em> pipeline data (stages, dates, funding mixes and progress) for illustration only. It is <strong>not</strong> an official FMITI or Federal Government of Nigeria dataset.</div>
+<body class="min-h-screen bg-white">
+<div class="demo-banner px-4 py-2.5 text-center font-medium"><strong>DEMO</strong> — Simulated pipeline data for illustration only. Not an official FMITI or Federal Government dataset.</div>
 <header class="border-b border-cream-300 bg-white sticky top-0 z-50">
 <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
 <div class="flex items-center gap-3 min-w-0">
-<img src="bsm-logo.png" alt="Beth Schwarz & Myers" class="h-11 w-11 object-contain shrink-0" onerror="this.style.display='none'"/>
+<img src="bsm-logo.png" alt="BSM" class="h-11 w-11 object-contain shrink-0" onerror="this.style.display='none'"/>
 <div class="min-w-0">
 <h1 class="font-display text-base sm:text-lg text-bronze-800 tracking-tight leading-tight">Nigeria National Investment Conversion & Delivery Assurance</h1>
 <p class="text-[11px] text-bronze-500 truncate">Beth Schwarz & Myers · FMITI / NIPC pilot · v1.0.0</p>
@@ -97,8 +95,8 @@ table.data tbody tr:hover{background:#fafafa}table.data tbody tr.selected{backgr
 <button type="button" id="ciReset" class="btn-ghost">Reset</button></div>
 <p class="text-[11px] text-bronze-400 mt-2" id="ciResultCount"></p></section>
 <div class="grid lg:grid-cols-5 gap-5">
-<section class="lg:col-span-2 card p-5"><h2 class="font-display text-base text-bronze-800 mb-1">Delivery funnel</h2><p class="text-[11px] text-bronze-500 mb-3">Simulated live stages — click to filter</p><div class="funnel-wrap" id="funnelConversion"></div><p class="text-[11px] text-bronze-500 mt-3" id="funnelStageNote">Map shows all planned projects by default.</p></section>
-<section class="lg:col-span-3 card p-4 sm:p-5 relative"><div class="flex flex-wrap items-center justify-between gap-2 mb-3"><div><h2 class="font-display text-base text-bronze-800">Nigeria project map</h2><p class="text-[11px] text-bronze-500 mt-0.5">State name on each marker · click for profile</p></div><div class="flex flex-wrap gap-2 text-[10px] text-bronze-600" id="mapLegend"></div></div>
+<section class="lg:col-span-2 card p-5"><h2 class="font-display text-base text-bronze-800 mb-1">Delivery funnel</h2><p class="text-[11px] text-bronze-500 mb-3">Click a stage to filter</p><div class="funnel-wrap" id="funnelConversion"></div><p class="text-[11px] text-bronze-500 mt-3" id="funnelStageNote">Map shows all planned projects by default.</p></section>
+<section class="lg:col-span-3 card p-4 sm:p-5 relative"><div class="flex flex-wrap items-center justify-between gap-2 mb-3"><div><h2 class="font-display text-base text-bronze-800">Nigeria project map</h2><p class="text-[11px] text-bronze-500 mt-0.5">State name on markers · click for profile</p></div><div class="flex flex-wrap gap-2 text-[10px] text-bronze-600" id="mapLegend"></div></div>
 <div class="relative"><div id="map" class="border border-cream-300"></div>
 <div class="map-bsm-badge"><img src="bsm-logo.png" alt="" class="h-7 w-7 object-contain" onerror="this.style.display='none'"/><div><div class="text-[10px] font-semibold text-bronze-800 leading-tight">Beth Schwarz & Myers</div><div class="text-[9px] text-bronze-500">Delivery assurance map</div></div></div></div></section></div>
 <div class="grid lg:grid-cols-5 gap-5">
@@ -106,7 +104,7 @@ table.data tbody tr:hover{background:#fafafa}table.data tbody tr.selected{backgr
 <div class="card overflow-x-auto max-h-[560px] overflow-y-auto"><table class="data w-full min-w-[300px]"><thead class="bg-cream-100 border-b border-cream-300 sticky top-0"><tr><th class="px-3 py-2.5 text-left">Project</th><th class="px-3 py-2.5 text-left">Stage</th></tr></thead><tbody id="ciTable" class="divide-y divide-cream-200"></tbody></table></div></section>
 <section class="lg:col-span-3"><h2 class="font-display text-base text-bronze-800 mb-3">Project intelligence profile</h2>
 <div class="card overflow-hidden min-h-[480px]" id="profilePanel">
-<div class="p-10 text-center text-bronze-500" id="profileEmpty"><p class="font-display text-lg text-bronze-700">Select a project</p><p class="text-sm mt-1">Map marker or table row opens delivery profile with funding sources.</p></div>
+<div class="p-10 text-center text-bronze-500" id="profileEmpty"><p class="font-display text-lg text-bronze-700">Select a project</p><p class="text-sm mt-1">Click a map marker or table row for delivery profile.</p></div>
 <div id="profileContent" class="hidden">
 <div class="profile-hero" id="profileHero"><div class="profile-hero-text"><p class="text-[10px] uppercase tracking-wider opacity-90" id="profileSectorTag"></p><h3 class="font-display text-xl leading-tight" id="profileName"></h3><p class="text-xs opacity-90 mt-0.5" id="profileLocation"></p></div></div>
 <div class="p-5 space-y-5">
@@ -122,9 +120,11 @@ table.data tbody tr:hover{background:#fafafa}table.data tbody tr.selected{backgr
 <div><h4 class="text-xs font-semibold uppercase tracking-wider text-bronze-500 mb-2">History & dates (simulated)</h4><div class="space-y-1.5" id="profileTimeline"></div></div>
 <div class="rounded-lg border border-bronze-500/30 bg-cream-100 p-4"><h4 class="text-xs font-semibold uppercase tracking-wider text-bronze-600 mb-1">Recommended next action</h4><p class="text-sm text-bronze-800 font-medium" id="profileNext"></p></div>
 <button type="button" id="profileClose" class="btn-ghost">Close profile</button>
-</div></div></div></section></div></div></main>
+</div></div></div></section></div></div>
+</main>
 <footer class="border-t border-cream-300 mt-10 py-8 bg-white"><div class="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left"><div class="flex items-center gap-2"><img src="bsm-logo.png" alt="" class="h-8 w-8 object-contain" onerror="this.style.display='none'"/><div><p class="font-display text-sm text-bronze-800">Beth Schwarz & Myers</p><p class="text-[11px] text-bronze-500">Investment · Trade · Development intelligence</p></div></div><p class="text-[11px] text-bronze-400 max-w-md">Demo only · Simulated stages, dates and funding · Not official FMITI data · v1.0.0</p></div></footer>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="./data.js"></script>
 <script src="./app.js"></script>
 </body>
 </html>
