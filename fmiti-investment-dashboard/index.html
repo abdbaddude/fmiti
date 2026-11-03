@@ -67,7 +67,7 @@ table.data tbody tr:hover{background:#fafafa;cursor:pointer}table.data tbody tr.
 <img src="bsm-logo.png" alt="BSM" class="h-11 w-11 object-contain shrink-0" onerror="this.style.display='none'"/>
 <div class="min-w-0">
 <h1 class="font-display text-base sm:text-lg text-bronze-800 tracking-tight leading-tight">Nigeria National Investment Conversion & Delivery Assurance</h1>
-<p class="text-[11px] text-bronze-500 truncate">Beth Schwarz & Myers · FMITI / NIPC pilot · v1.2.0</p>
+<p class="text-[11px] text-bronze-500 truncate">Beth Schwarz & Myers · FMITI / NIPC pilot · v1.3.0</p>
 </div></div>
 <div class="flex items-center gap-2 shrink-0">
 <label class="text-[10px] uppercase tracking-wider text-bronze-500 font-semibold hidden sm:inline">Currency</label>
@@ -75,7 +75,7 @@ table.data tbody tr:hover{background:#fafafa;cursor:pointer}table.data tbody tr.
 <option value="USD" selected>USD</option>
 <option value="NGN">NGN</option>
 </select>
-<span id="fxRateHint" class="text-[10px] text-bronze-400 hidden sm:inline whitespace-nowrap">1 USD = 1,600 NGN · demo</span>
+<span id="fxRateHint" class="text-[10px] text-bronze-400 hidden sm:inline whitespace-nowrap">1 USD = 1,347 NGN · CBN 3 Nov 2026</span>
 <span class="px-2.5 py-1 rounded-full bg-orange-50 text-orange-800 text-[11px] font-semibold border border-orange-200">Demo data</span>
 </div>
 </div>
@@ -84,6 +84,8 @@ table.data tbody tr:hover{background:#fafafa;cursor:pointer}table.data tbody tr.
 <button type="button" class="tab-btn active tip" data-tab="nigeria" id="tab-nigeria"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h14"/><circle cx="18" cy="12" r="2"/></svg> Pipeline overview<span class="tip-box">Sector capital mix, delivery funnel counts and full project list</span></button>
 <button type="button" class="tab-btn tip" data-tab="conversion" id="tab-conversion"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 3v18M5 8l7-5 7 5M5 16l7 5 7-5"/></svg> Conversion & delivery<span class="tip-box">Map, filters, bankability and delivery intelligence profiles</span></button>
 <button type="button" class="tab-btn tip" data-tab="network" id="tab-network"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="18" r="2.5"/><circle cx="12" cy="12" r="2.5"/><path d="M8.2 7.2l3.6 3.6M15.8 7.2l-3.6 3.6M8.2 16.8l3.6-3.6M15.8 16.8l-3.6-3.6"/></svg> Network signal<span class="tip-box">Projects · states · funders · FMITI links</span></button>
+<button type="button" class="tab-btn tip" data-tab="about" id="tab-about"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v.01M11 12h1v4h1"/></svg> About<span class="tip-box">What NICDA does · technical scope</span></button>
+<button type="button" class="tab-btn tip" data-tab="contact" id="tab-contact"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="M4 8l8 5 8-5"/></svg> Contact<span class="tip-box">BSM · product contact</span></button>
 </nav></div></header>
 <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
 <div id="panel-nigeria" class="space-y-6">
@@ -239,8 +241,61 @@ table.data tbody tr:hover{background:#fafafa;cursor:pointer}table.data tbody tr.
 <div id="netNodeDetail" class="hidden text-sm text-bronze-800 space-y-1"></div>
 </section>
 </div>
+<div id="panel-about" class="space-y-6 hidden-tab">
+<section class="card p-6 max-w-3xl">
+<div class="flex items-start justify-between gap-4 mb-4">
+<div>
+<p class="text-[10px] uppercase tracking-wider text-bronze-500 font-semibold">Product</p>
+<h2 class="font-display text-xl text-bronze-800">Nigeria National Investment Conversion & Delivery Assurance <span class="text-bronze-500 text-base">NICDA™</span></h2>
+</div>
+<span class="px-2.5 py-1 rounded-full bg-cream-200 text-bronze-700 text-[11px] font-semibold border border-cream-300 shrink-0">BSM product</span>
+</div>
+<p class="text-sm text-bronze-700 leading-relaxed mb-4">Sovereign-facing decision support for converting announced capital into bankable, deliverable assets. Built for FMITI / NIPC-style pipeline governance: stage visibility, bankability flags, conversion probability, funding links, and network signal across projects, states, and funders.</p>
+<h3 class="font-display text-sm text-bronze-800 mt-5 mb-2">Technical scope</h3>
+<ul class="text-sm text-bronze-700 space-y-1.5 list-disc pl-5">
+<li>Client-side SPA (static assets, no server runtime)</li>
+<li>65-project demo corpus with delivery stages, progress, bottlenecks, timelines</li>
+<li>Leaflet map with state-labelled sector markers</li>
+<li>Visual delivery funnel + pipeline stepper profiles</li>
+<li>Unified searchable / priority-filtered / paginated pipeline table</li>
+<li>USD↔NGN display at CBN reference (1 USD = 1,347 NGN as of 3 Nov 2026)</li>
+<li>Network graph: project ↔ state ↔ funder ↔ FMITI edges; optional Venn layout</li>
+<li>PWA shell (manifest + service worker) for installable offline shell</li>
+</ul>
+<h3 class="font-display text-sm text-bronze-800 mt-5 mb-2">What it is not</h3>
+<p class="text-sm text-bronze-600">Not an official FMITI or Federal Government dataset. Demo stages, dates and funding mixes are simulated for product illustration.</p>
+<p class="text-[11px] text-bronze-400 mt-6">NICDA™ · Beth Schwarz & Myers · Investment · Trade · Development intelligence</p>
+</section>
+</div>
+<div id="panel-contact" class="space-y-6 hidden-tab">
+<section class="grid md:grid-cols-2 gap-5">
+<div class="card p-6">
+<p class="text-[10px] uppercase tracking-wider text-bronze-500 font-semibold mb-2">Firm</p>
+<div class="flex items-center gap-3 mb-3">
+<img src="bsm-logo.png" alt="BSM" class="h-12 w-12 object-contain" onerror="this.style.display='none'"/>
+<div>
+<p class="font-display text-lg text-bronze-800">Beth Schwarz & Myers</p>
+<p class="text-xs text-bronze-500">Investment · Trade · Development intelligence</p>
+</div>
+</div>
+<p class="text-sm text-bronze-700 leading-relaxed">BSM designs sovereign and commercial tools for capital conversion, delivery assurance, and multi-channel outreach analytics across African markets.</p>
+<p class="text-xs text-bronze-500 mt-3">Product mark: <strong class="text-bronze-700">NICDA™</strong> — Nigeria National Investment Conversion & Delivery Assurance</p>
+</div>
+<div class="card p-6">
+<p class="text-[10px] uppercase tracking-wider text-bronze-500 font-semibold mb-2">Primary contact</p>
+<p class="font-display text-base text-bronze-800">Adebiyi Abdurrahman</p>
+<p class="text-sm text-bronze-600 mt-1">Product lead · FMITI pilot</p>
+<ul class="mt-4 space-y-2 text-sm text-bronze-700">
+<li><span class="text-bronze-500 text-xs uppercase tracking-wider font-semibold block">Email</span><a class="text-bronze-800 underline" href="mailto:abd_adebiyi@yahoo.com">abd_adebiyi@yahoo.com</a></li>
+<li><span class="text-bronze-500 text-xs uppercase tracking-wider font-semibold block">GitHub</span><a class="text-bronze-800 underline" href="https://github.com/abdbaddude/fmiti" target="_blank" rel="noopener">abdbaddude/fmiti</a></li>
+<li><span class="text-bronze-500 text-xs uppercase tracking-wider font-semibold block">Branch</span><span class="font-mono text-xs">v1.3.0</span></li>
+</ul>
+<p class="text-[11px] text-bronze-400 mt-6">For commercial licensing or deployment of NICDA™, contact BSM via the email above.</p>
+</div>
+</section>
+</div>
 </main>
-<footer class="border-t border-cream-300 mt-10 py-8 bg-white"><div class="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left"><div class="flex items-center gap-2"><img src="bsm-logo.png" alt="" class="h-8 w-8 object-contain" onerror="this.style.display='none'"/><div><p class="font-display text-sm text-bronze-800">Beth Schwarz & Myers</p><p class="text-[11px] text-bronze-500">Investment · Trade · Development intelligence</p></div></div><p class="text-[11px] text-bronze-400 max-w-md">Demo only · Simulated stages, dates and funding · Not official FMITI data · v1.2.0</p></div></footer>
+<footer class="border-t border-cream-300 mt-10 py-8 bg-white"><div class="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left"><div class="flex items-center gap-2"><img src="bsm-logo.png" alt="" class="h-8 w-8 object-contain" onerror="this.style.display='none'"/><div><p class="font-display text-sm text-bronze-800">Beth Schwarz & Myers</p><p class="text-[11px] text-bronze-500">Investment · Trade · Development intelligence</p></div></div><p class="text-[11px] text-bronze-400 max-w-md">Demo only · Simulated stages, dates and funding · Not official FMITI data · NICDA™ · v1.3.0</p></div></footer>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="./data-a.js"></script>
 <script src="./data-b.js"></script>
