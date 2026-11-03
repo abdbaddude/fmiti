@@ -42,7 +42,8 @@
   }
   function bankBadge(b) {
     var m = { High: "badge-high", "Medium-High": "badge-mh", Medium: "badge-med", "Medium-Low": "badge-ml", "Low-Medium": "badge-low" };
-    return '<span class="badge ' + (m[b] || "badge-med") + '">' + (b || "-") + '</span>';
+    var cls = m[b] || "badge-med";
+    return "<span class=\"badge " + cls + "\">" + (b || "-") + "</" + "span>";
   }
   function sectorIconSvg(sector) {
     var s = sector || "";
@@ -63,12 +64,12 @@
   }
   function stageBadge(p) {
     var st = p.deliveryStage || "initiation";
-    return '<span class="badge stage-' + st + ' inline-flex items-center">' + stageIconSvg(st) + (p.deliveryStageLabel || st) + '</span>';
+    return "<span class=\"badge stage-" + st + " inline-flex items-center\">" + stageIconSvg(st) + (p.deliveryStageLabel || st) + "</" + "span>";
   }
   function priorityBadge(pr) {
     var p = Number(pr) || 3;
     var cls = p === 1 ? "badge-high" : p === 2 ? "badge-mh" : "badge-med";
-    return '<span class="badge ' + cls + '">P' + p + '</span>';
+    return "<span class=\"badge " + cls + "\">P" + p + "</" + "span>";
   }
   function probBar(p) {
     var pct = Math.round((p || 0) * 100);
@@ -79,13 +80,13 @@
     var m = { yet_to_start: 0, initiation: 1, bankability: 2, engagement: 3, construction: 4, completion: 5 };
     return m[p.deliveryStage] != null ? m[p.deliveryStage] : 1;
   }
+  window.formatCapital = formatCapital;
+  window.SECTOR_COLORS = SECTOR_COLORS;
   function escapeHtml(str) {
     if (str == null) return "";
     return String(str).replace(/&/g, "&"+"amp;").replace(/</g, "&"+"lt;").replace(/>/g, "&"+"gt;").replace(/"/g, "&"+"quot;");
   }
-  window.formatCapital = formatCapital;
   window.escapeHtml = escapeHtml;
-  window.SECTOR_COLORS = SECTOR_COLORS;
 
   function switchTab(name) {
     var tabs = document.querySelectorAll(".tab-btn");
@@ -328,6 +329,8 @@
       });
     }
   }
+  window.openProfile = openProfile;
+  window.switchTab = switchTab;
   function openProfile(id) {
     var p = null;
     for (var i = 0; i < projects.length; i++) if (projects[i].id === id) { p = projects[i]; break; }
@@ -367,8 +370,6 @@
     }).join('') || '<p class="text-sm text-bronze-500">-</p>';
     renderCiTable(getFiltered());
   }
-  window.openProfile = openProfile;
-  window.switchTab = switchTab;
   function sectorIcon(sector, priority, stateName) {
     var color = SECTOR_COLORS[sector] || '#8b7355';
     var size = priority === 1 ? 14 : 11;
