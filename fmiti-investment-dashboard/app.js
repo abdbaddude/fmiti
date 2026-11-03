@@ -1,6 +1,7 @@
 (function () {
   "use strict";
   var projects = (window.EMBEDDED_PROJECTS || []).slice();
+
   var map = null, markersLayer = null, mapReady = false, selectedId = null, activeFunnelStage = null;
 
   var DELIVERY_STAGES = [
@@ -11,20 +12,8 @@
     { id: "construction", label: "Construction", anno: "Implementation underway", width: "52%", color: "#c2410c" },
     { id: "completion", label: "Completion", anno: "COD · operational", width: "40%", color: "#047857" }
   ];
-  var SECTOR_COLORS = {
-    "Oil, Gas & Power": "#b45309",
-    "Transport & Maritime": "#1d4ed8",
-    "Agriculture & Agro-Processing": "#047857",
-    "Industry, Manufacturing & Mining": "#7c3aed",
-    "Technology, Health & Urban": "#be123c"
-  };
-  var SECTOR_IMAGES = {
-    "Oil, Gas & Power": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&q=80",
-    "Transport & Maritime": "https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?w=800&q=80",
-    "Agriculture & Agro-Processing": "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&q=80",
-    "Industry, Manufacturing & Mining": "https://images.unsplash.com/photo-1565793298595-6a99b0c5833f?w=800&q=80",
-    "Technology, Health & Urban": "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80"
-  };
+  var SECTOR_COLORS = {"Oil, Gas & Power":"#b45309","Transport & Maritime":"#1d4ed8","Agriculture & Agro-Processing":"#047857","Industry, Manufacturing & Mining":"#7c3aed","Technology, Health & Urban":"#be123c"};
+  var SECTOR_IMAGES = {"Oil, Gas & Power":"https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&q=80","Transport & Maritime":"https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?w=800&q=80","Agriculture & Agro-Processing":"https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&q=80","Industry, Manufacturing & Mining":"https://images.unsplash.com/photo-1565793298595-6a99b0c5833f?w=800&q=80","Technology, Health & Urban":"https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80"};
   var sectorsMeta = [
     { name: "Oil, Gas & Power", capital: 36.4, count: 25, color: "#b45309", pct: 46.4 },
     { name: "Transport & Maritime", capital: 25.0, count: 8, color: "#1d4ed8", pct: 31.8 },
@@ -33,17 +22,52 @@
     { name: "Tech, Health & Urban", capital: 0.7, count: 9, color: "#be123c", pct: 0.9 }
   ];
 
+  var displayCurrency = "USD";
+  var FX_NGN_PER_USD = 1600;
+  var ngPage = 1;
+  var NG_PAGE_SIZE = 10;
+
   function formatCapital(c) {
     if (c == null || isNaN(c)) return "—";
-    if (c >= 1000) return "$" + (c / 1000).toFixed(2) + " bn";
-    return "$" + Number(c).toFixed(c % 1 ? 1 : 0) + " m";
+    var usd = Number(c);
+    if (displayCurrency === "NGN") {
+      var ngn = usd * FX_NGN_PER_USD;
+      if (ngn >= 1e6) return "₦" + (ngn / 1e6).toFixed(2) + " tn";
+      if (ngn >= 1000) return "₦" + (ngn / 1000).toFixed(1) + " bn";
+      return "₦" + Math.round(ngn).toLocaleString() + " m";
+    }
+    if (usd >= 1000) return "$" + (usd / 1000).toFixed(2) + " bn";
+    return "$" + usd.toFixed(usd % 1 ? 1 : 0) + " m";
   }
   function bankBadge(b) {
-    var m = { High: "badge-high", "Medium-High": "badge-mh", Medium: "badge-med", "Medium-Low": "badge-ml" };
-    return '<span class="badge ' + (m[b] || "badge-med") + '">' + (b || "—") + "</span>";
+    var m = { High: "badge-high", "Medium-High": "badge-mh", Medium: "badge-med", "Medium-Low": "badge-ml", "Low-Medium": "badge-low" };
+    return '<span class="badge ' + (m[b] || "badge-med") + '">' + (b || "—") + "</span>';
+  }
+  function sectorIconSvg(sector) {
+    var s = sector || "";
+    if (s.indexOf("Oil") === 0) return '<svg class="inline-block align-middle mr-1 shrink-0" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#b45309" stroke-width="1.8"><path d="M12 3c-2 4-6 6-6 11a6 6 0 0012 0c0-5-4-7-6-11z"/><path d="M10 16h4"/></svg>';
+    if (s.indexOf("Transport") === 0) return '<svg class="inline-block align-middle mr-1 shrink-0" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" stroke-width="1.8"><path d="M3 17h18v2H3z"/><path d="M5 17V9l7-4 7 4v8"/><circle cx="8" cy="17" r="1.5"/><circle cx="16" cy="17" r="1.5"/></svg>';
+    if (s.indexOf("Agriculture") === 0) return '<svg class="inline-block align-middle mr-1 shrink-0" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#047857" stroke-width="1.8"><path d="M12 22V10"/><path d="M7 12c0-4 5-8 5-8s5 4 5 8"/><path d="M5 18c3-1 7-1 10 0"/></svg>';
+    if (s.indexOf("Industry") === 0) return '<svg class="inline-block align-middle mr-1 shrink-0" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="1.8"><path d="M3 21h18"/><path d="M5 21V10l5 3V8l5 3V5l4 2v14"/></svg>';
+    return '<svg class="inline-block align-middle mr-1 shrink-0" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#be123c" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/></svg>';
+  }
+  function stageIconSvg(stage) {
+    var st = stage || "initiation";
+    if (st === "completion") return '<svg class="inline-block align-middle mr-1 shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg>';
+    if (st === "construction") return '<svg class="inline-block align-middle mr-1 shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 6l6 6-6 6"/><path d="M4 12h16"/></svg>';
+    if (st === "engagement") return '<svg class="inline-block align-middle mr-1 shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>';
+    if (st === "bankability") return '<svg class="inline-block align-middle mr-1 shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="1"/><path d="M7 7V5a5 5 0 0110 0v2"/></svg>';
+    if (st === "yet_to_start") return '<svg class="inline-block align-middle mr-1 shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+    return '<svg class="inline-block align-middle mr-1 shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>';
   }
   function stageBadge(p) {
-    return '<span class="badge stage-' + (p.deliveryStage || "initiation") + '">' + (p.deliveryStageLabel || p.deliveryStage || "—") + "</span>";
+    var st = p.deliveryStage || "initiation";
+    return '<span class="badge stage-' + st + ' inline-flex items-center">' + stageIconSvg(st) + (p.deliveryStageLabel || st) + "</span>";
+  }
+  function priorityBadge(pr) {
+    var p = Number(pr) || 3;
+    var cls = p === 1 ? "badge-high" : p === 2 ? "badge-mh" : "badge-med";
+    return '<span class="badge ' + cls + '">P' + p + "</span>";
   }
   function probBar(p) {
     var pct = Math.round((p || 0) * 100);
@@ -82,7 +106,10 @@
     var el = document.getElementById("sectorBars");
     if (!el) return;
     el.innerHTML = sectorsMeta.map(function (s) {
-      return '<div><div class="flex justify-between text-xs mb-1"><span class="text-bronze-700 font-medium sector-chip">' + escapeHtml(s.name) + '</span><span class="text-bronze-400">$' + s.capital + ' bn · ' + s.count + '</span></div><div class="h-2 bg-cream-200 rounded-full overflow-hidden"><div class="h-full rounded-full" style="width:' + s.pct + '%;background:' + s.color + '"></div></div></div>';
+      var capLabel = displayCurrency === "NGN"
+        ? ("₦" + (s.capital * FX_NGN_PER_USD / 1000).toFixed(1) + " tn · " + s.count)
+        : ("$" + s.capital + " bn · " + s.count);
+      return '<div><div class="flex justify-between text-xs mb-1"><span class="text-bronze-700 font-medium sector-chip inline-flex items-center">' + sectorIconSvg(s.name) + s.name + '</span><span class="text-bronze-400">' + capLabel + '</span></div><div class="h-2 bg-cream-200 rounded-full overflow-hidden"><div class="h-full rounded-full" style="width:' + s.pct + '%;background:' + s.color + '"></div></div></div>';
     }).join("");
   }
   function stageCounts() {
@@ -96,7 +123,7 @@
   function renderFunnels() {
     var c = stageCounts();
     var html = DELIVERY_STAGES.map(function (s) {
-      return '<button type="button" class="funnel-stage' + (activeFunnelStage === s.id ? ' active-stage' : '') + '" style="width:' + s.width + ';background:' + s.color + '" data-stage="' + s.id + '"><div class="fs-label"><span>' + s.label + '</span><span class="fs-anno">' + s.anno + '</span></div><span class="fs-count">' + (c[s.id] || 0) + '</span></button>';
+      return '<button type="button" class="funnel-stage' + (activeFunnelStage === s.id ? " active-stage" : "") + '" style="width:' + s.width + ';background:' + s.color + '" data-stage="' + s.id + '"><div class="fs-label"><span>' + s.label + '</span><span class="fs-anno">' + s.anno + '</span></div><span class="fs-count">' + (c[s.id] || 0) + "</span></button>";
     }).join("");
     var n = document.getElementById("funnelNigeria");
     var cv = document.getElementById("funnelConversion");
@@ -121,40 +148,91 @@
     var s = null;
     for (var i = 0; i < DELIVERY_STAGES.length; i++) if (DELIVERY_STAGES[i].id === id) s = DELIVERY_STAGES[i];
     var note = document.getElementById("funnelStageNote");
-    if (note) note.textContent = (activeFunnelStage && s) ? (s.label + ': ' + s.anno) : 'Map shows all planned projects by default.';
+    if (note) note.textContent = (activeFunnelStage && s) ? (s.label + ": " + s.anno) : "Map shows all planned projects by default.";
     renderFunnels();
     refreshConversion();
   }
   function bindRowClicks(tbody) {
     if (!tbody) return;
-    var rows = tbody.querySelectorAll('tr[data-id]');
+    var rows = tbody.querySelectorAll("tr[data-id]");
     for (var i = 0; i < rows.length; i++) {
-      rows[i].addEventListener('click', function (e) {
-        var id = parseInt(e.currentTarget.getAttribute('data-id'), 10);
-        switchTab('conversion');
+      rows[i].addEventListener("click", function (e) {
+        var id = parseInt(e.currentTarget.getAttribute("data-id"), 10);
+        switchTab("conversion");
         setTimeout(function () { openProfile(id); }, 80);
       });
     }
   }
-  function renderShortlist() {
-    var p1 = projects.filter(function (p) { return p.priority === 1; }).slice(0, 16);
-    var el = document.getElementById('shortlist');
-    if (!el) return;
-    el.innerHTML = p1.map(function (p) {
-      var prog = p.deliveryProgress != null ? p.deliveryProgress : 0;
-      return '<tr data-id="' + p.id + '"><td class="px-3 py-2.5"><div class="font-medium text-bronze-800">' + escapeHtml(p.name) + '</div><div class="text-[10px] text-bronze-400">' + formatCapital(p.capitalUSDm) + '</div></td><td class="px-3 py-2.5 text-sm">' + escapeHtml(p.state || '—') + '</td><td class="px-3 py-2.5">' + stageBadge(p) + '</td><td class="px-3 py-2.5"><div class="flex items-center gap-2"><div class="prob-bar flex-1 min-w-[60px]"><div class="prob-fill" style="width:' + prog + '%;background:#5c4a32"></div></div><span class="text-[11px] font-mono">' + prog + '%</span></div></td><td class="px-3 py-2.5 text-[11px] text-bronze-500">' + escapeHtml((p.fundingSources || []).slice(0, 2).join(' · ')) + '</td></tr>';
-    }).join('');
-    bindRowClicks(el);
+  function getNigeriaFiltered() {
+    var q = ((document.getElementById("ngSearch") || {}).value || "").toLowerCase().trim();
+    var sector = (document.getElementById("sectorFilterNigeria") || {}).value || "all";
+    var priority = (document.getElementById("ngPriority") || {}).value || "all";
+    return projects.filter(function (p) {
+      if (sector !== "all" && p.sector !== sector) return false;
+      if (priority !== "all" && String(p.priority) !== priority) return false;
+      if (q) {
+        var hay = [p.name, p.location, p.state, p.sector, p.sponsorHint, (p.fundingSources || []).join(" ")].join(" ").toLowerCase();
+        if (hay.indexOf(q) === -1) return false;
+      }
+      return true;
+    });
   }
-  function renderPipelineNigeria(filter) {
-    filter = filter || 'all';
-    var list = filter === 'all' ? projects : projects.filter(function (p) { return p.sector === filter; });
-    var el = document.getElementById('pipelineNigeria');
+  function renderPipelineNigeria() {
+    var list = getNigeriaFiltered();
+    var total = list.length;
+    var pages = Math.max(1, Math.ceil(total / NG_PAGE_SIZE));
+    if (ngPage > pages) ngPage = pages;
+    if (ngPage < 1) ngPage = 1;
+    var start = (ngPage - 1) * NG_PAGE_SIZE;
+    var pageList = list.slice(start, start + NG_PAGE_SIZE);
+    var el = document.getElementById("pipelineNigeria");
     if (!el) return;
-    el.innerHTML = list.map(function (p) {
-      return '<tr data-id="' + p.id + '"><td class="px-3 py-2 text-bronze-400 text-xs">' + p.id + '</td><td class="px-3 py-2"><div class="font-medium">' + escapeHtml(p.name) + '</div></td><td class="px-3 py-2 text-sm">' + escapeHtml(p.state || '—') + '</td><td class="px-3 py-2">' + stageBadge(p) + '</td><td class="px-3 py-2 text-right font-mono whitespace-nowrap">' + formatCapital(p.capitalUSDm) + '</td><td class="px-3 py-2 text-[11px] text-bronze-500">' + escapeHtml((p.fundingSources || []).join(' · ')) + '</td></tr>';
-    }).join('');
+    if (!pageList.length) {
+      el.innerHTML = '<tr><td colspan="9" class="px-3 py-8 text-center text-bronze-400 text-sm">No projects match the current filters</td></tr>';
+    } else {
+      el.innerHTML = pageList.map(function (p) {
+        var prog = p.deliveryProgress != null ? p.deliveryProgress : 0;
+        return '<tr class="cursor-pointer" data-id="' + p.id + '">' +
+          '<td class="px-3 py-2.5 text-bronze-400 text-xs font-mono">' + p.id + '</td>' +
+          '<td class="px-3 py-2.5"><div class="font-medium text-bronze-800">' + escapeHtml(p.name) + '</div></td>' +
+          '<td class="px-3 py-2.5 text-sm whitespace-nowrap" title="' + escapeHtml(p.sector || '') + '"><span class="inline-flex items-center">' + sectorIconSvg(p.sector) + '<span class="text-bronze-700">' + escapeHtml((p.sector || '').split(',')[0]) + '</span></span></td>' +
+          '<td class="px-3 py-2.5 text-sm">' + escapeHtml(p.state || '—') + '</td>' +
+          '<td class="px-3 py-2.5">' + stageBadge(p) + '</td>' +
+          '<td class="px-3 py-2.5"><div class="flex items-center gap-2 min-w-[90px]"><div class="prob-bar flex-1"><div class="prob-fill" style="width:' + prog + '%;background:#5c4a32"></div></div><span class="text-[11px] font-mono text-bronze-700">' + prog + '%</span></div></td>' +
+          '<td class="px-3 py-2.5 text-right font-mono whitespace-nowrap text-sm">' + formatCapital(p.capitalUSDm) + '</td>' +
+          '<td class="px-3 py-2.5">' + priorityBadge(p.priority) + '</td>' +
+          '<td class="px-3 py-2.5 text-[11px] text-bronze-500 max-w-[140px] truncate" title="' + escapeHtml((p.fundingSources || []).join(' · ')) + '">' + escapeHtml((p.fundingSources || []).slice(0, 2).join(' · ') || '—') + '</td>' +
+          '</tr>';
+      }).join('');
+    }
     bindRowClicks(el);
+    var countEl = document.getElementById('ngResultCount');
+    if (countEl) countEl.textContent = total + ' of ' + projects.length + ' projects';
+    var info = document.getElementById('ngPageInfo');
+    if (info) info.textContent = total ? ('Page ' + ngPage + ' of ' + pages + ' · showing ' + (start + 1) + '–' + Math.min(start + NG_PAGE_SIZE, total)) : 'No results';
+    var prev = document.getElementById('ngPrev');
+    var next = document.getElementById('ngNext');
+    if (prev) prev.disabled = ngPage <= 1;
+    if (next) next.disabled = ngPage >= pages;
+  }
+  function refreshNigeriaTable() {
+    ngPage = 1;
+    renderPipelineNigeria();
+  }
+  function refreshCurrencyDependent() {
+    var kpi = document.querySelector('#panel-nigeria .kpi-value');
+    if (kpi) {
+      if (displayCurrency === 'NGN') {
+        var tn = (78.5 * FX_NGN_PER_USD / 1000);
+        kpi.innerHTML = '₦' + tn.toFixed(1) + '<span class="text-base font-medium text-bronze-500"> tn</span>';
+      } else {
+        kpi.innerHTML = '$78.5' + '<span class="text-base font-medium text-bronze-500">bn</span>';
+      }
+    }
+    renderSectorBars();
+    renderPipelineNigeria();
+    renderCiTable(getFiltered());
+    if (selectedId) openProfile(selectedId);
   }
   function getFiltered() {
     var q = ((document.getElementById('ciSearch') || {}).value || '').toLowerCase().trim();
@@ -217,8 +295,25 @@
         refreshConversion();
       });
     }
-    var sf = document.getElementById('sectorFilterNigeria');
-    if (sf) sf.addEventListener('change', function (e) { renderPipelineNigeria(e.target.value); });
+    ['ngSearch', 'sectorFilterNigeria', 'ngPriority'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener('input', refreshNigeriaTable);
+      el.addEventListener('change', refreshNigeriaTable);
+    });
+    var prev = document.getElementById('ngPrev');
+    var next = document.getElementById('ngNext');
+    if (prev) prev.addEventListener('click', function () { if (ngPage > 1) { ngPage--; renderPipelineNigeria(); } });
+    if (next) next.addEventListener('click', function () { ngPage++; renderPipelineNigeria(); });
+    var cur = document.getElementById('currencySelect');
+    if (cur) {
+      cur.addEventListener('change', function (e) {
+        displayCurrency = e.target.value === 'NGN' ? 'NGN' : 'USD';
+        var hint = document.getElementById('fxRateHint');
+        if (hint) hint.textContent = '1 USD = ' + FX_NGN_PER_USD.toLocaleString() + ' NGN · demo';
+        refreshCurrencyDependent();
+      });
+    }
   }
   function openProfile(id) {
     var p = null;
@@ -304,7 +399,7 @@
   }
   function load() {
     if (!projects.length) {
-      console.error('No embedded projects — ensure data.js loads before app.js');
+      console.error('No embedded projects');
       return;
     }
     bindTabs();
@@ -320,8 +415,7 @@
     }
     renderSectorBars();
     renderFunnels();
-    renderShortlist();
-    renderPipelineNigeria('all');
+    renderPipelineNigeria();
     renderCiTable(projects);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', load);
