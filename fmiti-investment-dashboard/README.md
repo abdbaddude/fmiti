@@ -1,25 +1,36 @@
-# Nigeria National Investment Conversion & Delivery Assurance
+# Nigeria National Investment Conversion & Delivery Assurance (NICDA™)
 
-**Beth Schwarz & Myers** · **v1.1.0**
+**v1.4.0** — modular SPA (3 Nov 2026)
 
-Self-contained SPA (demo). 65 simulated projects. Not official FMITI data.
+Beth Schwarz & Myers · FMITI / NIPC pilot demo
 
-## Run
+## Run locally
 ```bash
-cd fmiti-investment-dashboard
+git clone -b v1.4.0 https://github.com/abdbaddude/fmiti.git
+cd fmiti/fmiti-investment-dashboard
 python3 -m http.server 8765
 # open http://127.0.0.1:8765
 ```
 
-## Files
-- `index.html` — UI shell + professional icons
-- `data.js` — 65 embedded projects (stages, funding, lat/lng)
-- `app.js` — tabs, delivery funnel, map, intelligence profiles
-- `manifest.json` / `sw.js` — PWA
+Do **not** open the GitHub blob page alone — relative scripts will not run; you will only see the static $78.5bn shell.
 
-## Features
-- Pipeline overview + Conversion & delivery tabs (with icons)
-- Visual delivery funnel (click stage to filter)
-- Nigeria map with state name markers (all 65 by default)
-- Bankability, bottlenecks, funding sources, next actions
-- Helvetica Neue · white theme · BSM branding · demo banner
+## Structure
+| Path | Role |
+|------|------|
+| `index.html` | Shell, styles, tabs |
+| `js/config.js` | Version, CBN FX (1,347 · 3 Nov 2026), stages, sector meta |
+| `js/icons.js` | Sector / stage / network glyphs |
+| `js/state-intel.js` | State card (Governor; FAAC/IGR N/A; pipeline appetite) |
+| `data-a.js` / `data-b.js` | 65 projects |
+| `app.js` | KPIs, funnel, table, map, profile, currency, state card |
+| `app-network.js` | Draggable network nodes, icons, selection detail |
+
+## v1.4.0 highlights
+- Modular layout for maintenance and plugins
+- Network: drag nodes, click for detail, type/sector icons
+- Currency (USD/NGN) refreshes all tabs including network KPIs
+- Map hover: capital, stage, bankability, priority
+- State links → short card (Governor, FAAC N/A, IGR N/A, project appetite from this pipeline)
+- Profile: small state thumb without changing the state cell
+
+Demo data only — not official FMITI data.

@@ -1,8 +1,10 @@
 [build]
   base = "fmiti-investment-dashboard"
   publish = "."
+  command = "echo 'Static site – no build required'"
 
 [[headers]]
   for = "/*"
   [headers.values]
-    Cache-Control = "public, max-age=300"
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
