@@ -1,20 +1,34 @@
-# FMITI Investment Dashboard — v1.2.0
+# Nigeria National Investment Conversion & Delivery Assurance (NICDA™)
 
-**Nigeria National Investment Conversion & Delivery Assurance** (BSM demo)
+**v1.3.1-stable** (from v1.3.0 working tree)
 
-## v1.2.0 — Network signal
-- New **Network signal** tab: projects · states · funders · **FMITI** (every project linked)
-- Search / sector / priority filters drive the graph
-- Layout: **Network** (default) or optional **Venn** (P1 ∩ bankability ∩ advanced stage — any combination or none)
-- Node inspect + jump to conversion profile
+Beth Schwarz & Myers · FMITI / NIPC pilot demo
 
-## v1.1.1
-- Unified pipeline table, USD/NGN, search, priority, pagination, sector/stage icons
+## Critical: how to view
 
-## Run
+Do **not** open the GitHub blob/raw page alone. That shows only the static `$78.5bn` HTML shell because relative scripts (`./data-a.js`, `./app.js`, …) do not execute there.
+
+### Local (recommended)
 ```bash
-cd fmiti-investment-dashboard
+git clone -b v1.3.1-stable https://github.com/abdbaddude/fmiti.git
+cd fmiti/fmiti-investment-dashboard
 python3 -m http.server 8765
+# open http://127.0.0.1:8765
 ```
 
-**Demo only** — not official FMITI data.
+### Files
+- `index.html` — shell + tabs
+- `data-a.js` / `data-b.js` — 65 projects (`window.EMBEDDED_PROJECTS`)
+- `app.js` — KPIs, funnel, table, map, profiles, FX (CBN 1,347)
+- `app-network.js` — Network signal + Venn
+
+## Features
+- 65-project pipeline ($78.5bn simulated)
+- Unified searchable / priority-filtered / paginated table
+- Visual delivery funnel + Nigeria map
+- Conversion intelligence profiles
+- Network signal (projects · states · funders · FMITI)
+- Currency USD/NGN (CBN 3 Nov 2026)
+- About + Contact (NICDA™ · BSM)
+
+Demo data only — not official FMITI data.
