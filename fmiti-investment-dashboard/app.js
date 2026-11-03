@@ -1,6 +1,7 @@
 (function () {
   "use strict";
   var projects = (window.EMBEDDED_PROJECTS || []).slice();
+  window.PROJECTS = projects;
 
   var map = null, markersLayer = null, mapReady = false, selectedId = null, activeFunnelStage = null;
 
@@ -82,15 +83,23 @@
     if (str == null) return "";
     return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
+  window.formatCapital = formatCapital;
+  window.escapeHtml = escapeHtml;
+  window.SECTOR_COLORS = SECTOR_COLORS;
 
   function switchTab(name) {
     var tabs = document.querySelectorAll(".tab-btn");
     for (var i = 0; i < tabs.length; i++) tabs[i].classList.toggle("active", tabs[i].getAttribute("data-tab") === name);
     document.getElementById("panel-nigeria").classList.toggle("hidden-tab", name !== "nigeria");
     document.getElementById("panel-conversion").classList.toggle("hidden-tab", name !== "conversion");
+    var pn = document.getElementById("panel-network");
+    if (pn) pn.classList.toggle("hidden-tab", name !== "network");
     if (name === "conversion") {
       if (!mapReady) { initMap(); mapReady = true; }
       setTimeout(function () { if (map) { map.invalidateSize(); renderMapMarkers(getFiltered()); } }, 120);
+    }
+    if (name === "network") {
+      setTimeout(function () { if (window.renderNetwork) window.renderNetwork(); }, 60);
     }
   }
   function bindTabs() {
@@ -354,6 +363,8 @@
     }).join('') || '<p class="text-sm text-bronze-500">—</p>';
     renderCiTable(getFiltered());
   }
+  window.openProfile = openProfile;
+  window.switchTab = switchTab;
   function sectorIcon(sector, priority, stateName) {
     var color = SECTOR_COLORS[sector] || '#8b7355';
     var size = priority === 1 ? 14 : 11;
@@ -402,8 +413,10 @@
       console.error('No embedded projects');
       return;
     }
+    window.PROJECTS = projects;
     bindTabs();
     bindFilters();
+    if (window.bindNetworkControls) window.bindNetworkControls();
     var closeBtn = document.getElementById('profileClose');
     if (closeBtn) {
       closeBtn.addEventListener('click', function () {
