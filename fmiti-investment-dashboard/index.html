@@ -67,7 +67,7 @@ table.data tbody tr:hover{background:#fafafa;cursor:pointer}table.data tbody tr.
 <img src="bsm-logo.png" alt="BSM" class="h-11 w-11 object-contain shrink-0" onerror="this.style.display='none'"/>
 <div class="min-w-0">
 <h1 class="font-display text-base sm:text-lg text-bronze-800 tracking-tight leading-tight">Nigeria National Investment Conversion & Delivery Assurance</h1>
-<p class="text-[11px] text-bronze-500 truncate">Beth Schwarz & Myers · FMITI / NIPC pilot · v1.3.0</p>
+<p class="text-[11px] text-bronze-500 truncate">Beth Schwarz & Myers · FMITI / NIPC pilot · v1.3.1</p>
 </div></div>
 <div class="flex items-center gap-2 shrink-0">
 <label class="text-[10px] uppercase tracking-wider text-bronze-500 font-semibold hidden sm:inline">Currency</label>
@@ -88,6 +88,7 @@ table.data tbody tr:hover{background:#fafafa;cursor:pointer}table.data tbody tr.
 <button type="button" class="tab-btn tip" data-tab="contact" id="tab-contact"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="M4 8l8 5 8-5"/></svg> Contact<span class="tip-box">BSM · product contact</span></button>
 </nav></div></header>
 <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+<p class="text-sm text-bronze-600 mb-4">Load the full dashboard via static server — clone this folder and run <code>python3 -m http.server 8765</code>. Opening the GitHub blob page alone shows only the $78.5bn shell.</p>
 <div id="panel-nigeria" class="space-y-6">
 <section class="grid grid-cols-2 md:grid-cols-4 gap-3">
 <div class="card p-4"><p class="kpi-label">Total pipeline</p><p class="kpi-value mt-1">$78.5<span class="text-base font-medium text-bronze-500">bn</span></p><p class="text-[11px] text-bronze-400 mt-0.5">65 projects · simulated mix</p></div>
@@ -160,142 +161,12 @@ table.data tbody tr:hover{background:#fafafa;cursor:pointer}table.data tbody tr.
 </div>
 </section>
 </div>
-<div id="panel-conversion" class="space-y-6 hidden-tab">
-<section class="card p-4"><div class="flex flex-wrap gap-3 items-end">
-<div class="flex-1 min-w-[160px]"><label class="block text-[10px] uppercase tracking-wider text-bronze-500 font-semibold mb-1">Search</label><input type="search" id="ciSearch" class="input-bsm w-full" placeholder="Project, state, funding…"/></div>
-<div><label class="block text-[10px] uppercase tracking-wider text-bronze-500 font-semibold mb-1">Sector</label><select id="ciSector" class="input-bsm"><option value="all">All</option><option value="Oil, Gas & Power">Oil, Gas & Power</option><option value="Transport & Maritime">Transport & Maritime</option><option value="Agriculture & Agro-Processing">Agriculture</option><option value="Industry, Manufacturing & Mining">Industry</option><option value="Technology, Health & Urban">Tech / Health / Urban</option></select></div>
-<div><label class="block text-[10px] uppercase tracking-wider text-bronze-500 font-semibold mb-1">Delivery stage</label><select id="ciStage" class="input-bsm"><option value="all">All stages</option><option value="yet_to_start">Yet to start</option><option value="initiation">Initiation</option><option value="bankability">Bankability</option><option value="engagement">Engagement</option><option value="construction">Construction</option><option value="completion">Completion</option></select></div>
-<div><label class="block text-[10px] uppercase tracking-wider text-bronze-500 font-semibold mb-1">Priority</label><select id="ciPriority" class="input-bsm"><option value="all">All</option><option value="1">P1</option><option value="2">P2</option><option value="3">P3</option></select></div>
-<button type="button" id="ciReset" class="btn-ghost">Reset</button></div>
-<p class="text-[11px] text-bronze-400 mt-2" id="ciResultCount"></p></section>
-<div class="grid lg:grid-cols-5 gap-5">
-<section class="lg:col-span-2 card p-5"><h2 class="font-display text-base text-bronze-800 mb-1">Delivery funnel</h2><p class="text-[11px] text-bronze-500 mb-3">Click a stage to filter the map and list</p><div class="funnel-wrap" id="funnelConversion"></div><p class="text-[11px] text-bronze-500 mt-3" id="funnelStageNote">Map shows all planned projects by default.</p></section>
-<section class="lg:col-span-3 card p-4 sm:p-5 relative"><div class="flex flex-wrap items-center justify-between gap-2 mb-3"><div><h2 class="font-display text-base text-bronze-800">Nigeria project map</h2><p class="text-[11px] text-bronze-500 mt-0.5">State name on markers · click for profile</p></div><div class="flex flex-wrap gap-2 text-[10px] text-bronze-600" id="mapLegend"></div></div>
-<div class="relative"><div id="map" class="border border-cream-300"></div>
-<div class="map-bsm-badge"><img src="bsm-logo.png" alt="" class="h-7 w-7 object-contain" onerror="this.style.display='none'"/><div><div class="text-[10px] font-semibold text-bronze-800 leading-tight">Beth Schwarz & Myers</div><div class="text-[9px] text-bronze-500">Delivery assurance map</div></div></div></div></section></div>
-<div class="grid lg:grid-cols-5 gap-5">
-<section class="lg:col-span-2"><h2 class="font-display text-base text-bronze-800 mb-3">Projects</h2>
-<div class="card overflow-x-auto max-h-[560px] overflow-y-auto"><table class="data w-full min-w-[300px]"><thead class="bg-cream-100 border-b border-cream-300 sticky top-0"><tr><th class="px-3 py-2.5 text-left">Project</th><th class="px-3 py-2.5 text-left">Stage</th></tr></thead><tbody id="ciTable" class="divide-y divide-cream-200"></tbody></table></div></section>
-<section class="lg:col-span-3"><h2 class="font-display text-base text-bronze-800 mb-3">Project intelligence profile</h2>
-<div class="card overflow-hidden min-h-[480px]" id="profilePanel">
-<div class="p-10 text-center text-bronze-500" id="profileEmpty"><p class="font-display text-lg text-bronze-700">Select a project</p><p class="text-sm mt-1">Click a map marker or table row for delivery profile.</p></div>
-<div id="profileContent" class="hidden">
-<div class="profile-hero" id="profileHero"><div class="profile-hero-text"><p class="text-[10px] uppercase tracking-wider opacity-90" id="profileSectorTag"></p><h3 class="font-display text-xl leading-tight" id="profileName"></h3><p class="text-xs opacity-90 mt-0.5" id="profileLocation"></p></div></div>
-<div class="p-5 space-y-5">
-<div><div class="flex items-center justify-between mb-2"><h4 class="text-xs font-semibold uppercase tracking-wider text-bronze-500">Delivery pipeline</h4><span class="text-[11px] text-bronze-500" id="profileStageLabel"></span></div><div class="pipe-track" id="profilePipeline"></div>
-<div class="mt-3"><div class="flex justify-between text-[11px] text-bronze-500 mb-1"><span>Delivery progress</span><span id="profileProgressPct"></span></div><div class="prob-bar"><div class="prob-fill" id="profileProgressBar" style="width:0%;background:#5c4a32"></div></div></div></div>
-<div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-<div class="rounded-lg bg-cream-100 border border-cream-200 p-3"><p class="text-[10px] uppercase text-bronze-500 font-semibold">Capital</p><p class="font-mono font-semibold text-bronze-800 mt-0.5" id="profileCapital"></p></div>
-<div class="rounded-lg bg-cream-100 border border-cream-200 p-3"><p class="text-[10px] uppercase text-bronze-500 font-semibold">State</p><p class="font-semibold text-bronze-800 mt-0.5" id="profileState"></p></div>
-<div class="rounded-lg bg-cream-100 border border-cream-200 p-3"><p class="text-[10px] uppercase text-bronze-500 font-semibold">Bankability</p><p class="mt-0.5" id="profileBank"></p></div>
-<div class="rounded-lg bg-cream-100 border border-cream-200 p-3"><p class="text-[10px] uppercase text-bronze-500 font-semibold">Conv. prob.</p><p class="mt-0.5" id="profileProb"></p></div></div>
-<div class="grid sm:grid-cols-2 gap-4"><div><h4 class="text-xs font-semibold uppercase tracking-wider text-bronze-500 mb-2">Funding / finance sources</h4><ul class="text-sm text-bronze-800 space-y-1" id="profileFunding"></ul><p class="text-[12px] text-bronze-500 mt-2" id="profileFinance"></p><p class="text-[12px] text-bronze-500" id="profileSponsor"></p></div>
-<div><h4 class="text-xs font-semibold uppercase tracking-wider text-bronze-500 mb-2">Key bottlenecks</h4><ul class="text-sm text-bronze-700 space-y-1" id="profileBottlenecks"></ul></div></div>
-<div><h4 class="text-xs font-semibold uppercase tracking-wider text-bronze-500 mb-2">History & dates (simulated)</h4><div class="space-y-1.5" id="profileTimeline"></div></div>
-<div class="rounded-lg border border-bronze-500/30 bg-cream-100 p-4"><h4 class="text-xs font-semibold uppercase tracking-wider text-bronze-600 mb-1">Recommended next action</h4><p class="text-sm text-bronze-800 font-medium" id="profileNext"></p></div>
-<button type="button" id="profileClose" class="btn-ghost">Close profile</button>
-</div></div></div></section></div></div>
-<div id="panel-network" class="space-y-6 hidden-tab">
-<section class="card p-4">
-<div class="flex flex-wrap gap-3 items-end">
-<div class="flex-1 min-w-[160px]"><label class="block text-[10px] uppercase tracking-wider text-bronze-500 font-semibold mb-1">Search</label><input type="search" id="netSearch" class="input-bsm w-full" placeholder="Project, state, funding…"/></div>
-<div><label class="block text-[10px] uppercase tracking-wider text-bronze-500 font-semibold mb-1">Sector</label><select id="netSector" class="input-bsm"><option value="all">All</option><option value="Oil, Gas & Power">Oil, Gas & Power</option><option value="Transport & Maritime">Transport & Maritime</option><option value="Agriculture & Agro-Processing">Agriculture</option><option value="Industry, Manufacturing & Mining">Industry</option><option value="Technology, Health & Urban">Tech / Health / Urban</option></select></div>
-<div><label class="block text-[10px] uppercase tracking-wider text-bronze-500 font-semibold mb-1">Priority</label><select id="netPriority" class="input-bsm"><option value="all">All</option><option value="1">P1</option><option value="2">P2</option><option value="3">P3</option></select></div>
-<div><label class="block text-[10px] uppercase tracking-wider text-bronze-500 font-semibold mb-1">Layout</label>
-<div class="inline-flex rounded-lg border border-cream-300 overflow-hidden">
-<button type="button" id="netLayoutNetwork" class="px-3 py-1.5 text-xs font-semibold bg-bronze-700 text-white">Network</button>
-<button type="button" id="netLayoutVenn" class="px-3 py-1.5 text-xs font-semibold text-bronze-600 bg-white">Venn</button>
-</div></div>
-<button type="button" id="netReset" class="btn-ghost">Reset</button>
-</div>
-<p class="text-[11px] text-bronze-400 mt-2" id="netResultCount"></p>
-</section>
-<section class="grid grid-cols-2 md:grid-cols-4 gap-3" id="netKpis">
-<div class="card p-3"><p class="kpi-label">Visible capital</p><p class="kpi-value text-lg mt-0.5" id="netKpiCap">—</p></div>
-<div class="card p-3"><p class="kpi-label">Projects</p><p class="kpi-value text-lg mt-0.5" id="netKpiProj">—</p></div>
-<div class="card p-3"><p class="kpi-label">States</p><p class="kpi-value text-lg mt-0.5" id="netKpiStates">—</p></div>
-<div class="card p-3"><p class="kpi-label">Funders</p><p class="kpi-value text-lg mt-0.5" id="netKpiFund">—</p></div>
-</section>
-<section class="card p-4 relative">
-<div class="flex flex-wrap items-center justify-between gap-2 mb-2">
-<h2 class="font-display text-base text-bronze-800">Capital network</h2>
-<div class="flex flex-wrap gap-3 text-[10px] text-bronze-600">
-<span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-bronze-700"></span>FMITI</span>
-<span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full" style="background:#1d4ed8"></span>State</span>
-<span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full" style="background:#b45309"></span>Funder</span>
-<span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full" style="background:#047857"></span>Project</span>
-</div>
-</div>
-<p class="text-[11px] text-bronze-500 mb-3" id="netLayoutNote">Network layout · every project links to FMITI · filter drives graph</p>
-<div id="netGraph" class="w-full border border-cream-300 rounded-xl bg-cream-50 overflow-hidden" style="height:520px;position:relative"></div>
-<div id="netVennSets" class="hidden flex flex-wrap gap-3 mt-3 text-[11px]">
-<label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="vennP1" class="rounded" checked/> P1 priority</label>
-<label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="vennBank" class="rounded" checked/> High bankability</label>
-<label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="vennAdv" class="rounded" checked/> Construction / completion</label>
-<span class="text-bronze-400">(any combination or none)</span>
-</div>
-</section>
-<section class="card p-4">
-<h2 class="font-display text-base text-bronze-800 mb-2">Selected node</h2>
-<div id="netNodeEmpty" class="text-sm text-bronze-500">Click a node to inspect links.</div>
-<div id="netNodeDetail" class="hidden text-sm text-bronze-800 space-y-1"></div>
-</section>
-</div>
-<div id="panel-about" class="space-y-6 hidden-tab">
-<section class="card p-6 max-w-3xl">
-<div class="flex items-start justify-between gap-4 mb-4">
-<div>
-<p class="text-[10px] uppercase tracking-wider text-bronze-500 font-semibold">Product</p>
-<h2 class="font-display text-xl text-bronze-800">Nigeria National Investment Conversion & Delivery Assurance <span class="text-bronze-500 text-base">NICDA™</span></h2>
-</div>
-<span class="px-2.5 py-1 rounded-full bg-cream-200 text-bronze-700 text-[11px] font-semibold border border-cream-300 shrink-0">BSM product</span>
-</div>
-<p class="text-sm text-bronze-700 leading-relaxed mb-4">Sovereign-facing decision support for converting announced capital into bankable, deliverable assets. Built for FMITI / NIPC-style pipeline governance: stage visibility, bankability flags, conversion probability, funding links, and network signal across projects, states, and funders.</p>
-<h3 class="font-display text-sm text-bronze-800 mt-5 mb-2">Technical scope</h3>
-<ul class="text-sm text-bronze-700 space-y-1.5 list-disc pl-5">
-<li>Client-side SPA (static assets, no server runtime)</li>
-<li>65-project demo corpus with delivery stages, progress, bottlenecks, timelines</li>
-<li>Leaflet map with state-labelled sector markers</li>
-<li>Visual delivery funnel + pipeline stepper profiles</li>
-<li>Unified searchable / priority-filtered / paginated pipeline table</li>
-<li>USD↔NGN display at CBN reference (1 USD = 1,347 NGN as of 3 Nov 2026)</li>
-<li>Network graph: project ↔ state ↔ funder ↔ FMITI edges; optional Venn layout</li>
-<li>PWA shell (manifest + service worker) for installable offline shell</li>
-</ul>
-<h3 class="font-display text-sm text-bronze-800 mt-5 mb-2">What it is not</h3>
-<p class="text-sm text-bronze-600">Not an official FMITI or Federal Government dataset. Demo stages, dates and funding mixes are simulated for product illustration.</p>
-<p class="text-[11px] text-bronze-400 mt-6">NICDA™ · Beth Schwarz & Myers · Investment · Trade · Development intelligence</p>
-</section>
-</div>
-<div id="panel-contact" class="space-y-6 hidden-tab">
-<section class="grid md:grid-cols-2 gap-5">
-<div class="card p-6">
-<p class="text-[10px] uppercase tracking-wider text-bronze-500 font-semibold mb-2">Firm</p>
-<div class="flex items-center gap-3 mb-3">
-<img src="bsm-logo.png" alt="BSM" class="h-12 w-12 object-contain" onerror="this.style.display='none'"/>
-<div>
-<p class="font-display text-lg text-bronze-800">Beth Schwarz & Myers</p>
-<p class="text-xs text-bronze-500">Investment · Trade · Development intelligence</p>
-</div>
-</div>
-<p class="text-sm text-bronze-700 leading-relaxed">BSM designs sovereign and commercial tools for capital conversion, delivery assurance, and multi-channel outreach analytics across African markets.</p>
-<p class="text-xs text-bronze-500 mt-3">Product mark: <strong class="text-bronze-700">NICDA™</strong> — Nigeria National Investment Conversion & Delivery Assurance</p>
-</div>
-<div class="card p-6">
-<p class="text-[10px] uppercase tracking-wider text-bronze-500 font-semibold mb-2">Primary contact</p>
-<p class="font-display text-base text-bronze-800">Adebiyi Abdurrahman</p>
-<p class="text-sm text-bronze-600 mt-1">Product lead · FMITI pilot</p>
-<ul class="mt-4 space-y-2 text-sm text-bronze-700">
-<li><span class="text-bronze-500 text-xs uppercase tracking-wider font-semibold block">Email</span><a class="text-bronze-800 underline" href="mailto:abd_adebiyi@yahoo.com">abd_adebiyi@yahoo.com</a></li>
-<li><span class="text-bronze-500 text-xs uppercase tracking-wider font-semibold block">GitHub</span><a class="text-bronze-800 underline" href="https://github.com/abdbaddude/fmiti" target="_blank" rel="noopener">abdbaddude/fmiti</a></li>
-<li><span class="text-bronze-500 text-xs uppercase tracking-wider font-semibold block">Branch</span><span class="font-mono text-xs">v1.3.0</span></li>
-</ul>
-<p class="text-[11px] text-bronze-400 mt-6">For commercial licensing or deployment of NICDA™, contact BSM via the email above.</p>
-</div>
-</section>
-</div>
+<div id="panel-conversion" class="space-y-6 hidden-tab"></div>
+<div id="panel-network" class="space-y-6 hidden-tab"></div>
+<div id="panel-about" class="space-y-6 hidden-tab"></div>
+<div id="panel-contact" class="space-y-6 hidden-tab"></div>
 </main>
-<footer class="border-t border-cream-300 mt-10 py-8 bg-white"><div class="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left"><div class="flex items-center gap-2"><img src="bsm-logo.png" alt="" class="h-8 w-8 object-contain" onerror="this.style.display='none'"/><div><p class="font-display text-sm text-bronze-800">Beth Schwarz & Myers</p><p class="text-[11px] text-bronze-500">Investment · Trade · Development intelligence</p></div></div><p class="text-[11px] text-bronze-400 max-w-md">Demo only · Simulated stages, dates and funding · Not official FMITI data · NICDA™ · v1.3.0</p></div></footer>
+<footer class="border-t border-cream-300 mt-10 py-8 bg-white"><div class="max-w-7xl mx-auto px-4 text-center text-[11px] text-bronze-400">Beth Schwarz & Myers · NICDA™ demo · v1.3.1 · Serve with python3 -m http.server</div></footer>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="./data-a.js"></script>
 <script src="./data-b.js"></script>
