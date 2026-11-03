@@ -327,21 +327,45 @@
         renderCiTable(getFiltered());
       });
     }
-    fetch("projects.json")
-      .then(function (res) { if (!res.ok) throw new Error("HTTP " + res.status); return res.json(); })
-      .then(function (data) {
+    function renderAll() {
+      renderSectorBars();
+      renderFunnels();
+      renderShortlist();
+      renderPipelineNigeria("all");
+      renderCiTable(projects);
+    }
+    function loadParts() {
+      return Promise.all([
+        fetch("projects-part0.json").then(function (r) { return r.ok ? r.json() : { projects: [] }; }).catch(function () { return { projects: [] }; }),
+        fetch("projects-part1.json").then(function (r) { return r.ok ? r.json() : { projects: [] }; }).catch(function () { return { projects: [] }; }),
+        fetch("projects-part2.json").then(function (r) { return r.ok ? r.json() : { projects: [] }; }).catch(function () { return { projects: [] }; })
+      ]).then(function (parts) {
+        var merged = [];
+        for (var i = 0; i < parts.length; i++) {
+          var arr = (parts[i] && parts[i].projects) ? parts[i].projects : [];
+          for (var j = 0; j < arr.length; j++) merged.push(arr[j]);
+        }
+        return merged;
+      });
+    }
+    loadParts().then(function (merged) {
+      if (merged && merged.length >= 20) {
+        projects = merged;
+        renderAll();
+        return;
+      }
+      return fetch("projects.json").then(function (res) {
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return res.json();
+      }).then(function (data) {
         projects = data.projects || data || [];
         if (!projects.length) throw new Error("No projects in data");
-        renderSectorBars();
-        renderFunnels();
-        renderShortlist();
-        renderPipelineNigeria("all");
-        renderCiTable(projects);
-      })
-      .catch(function (err) {
-        console.error(err);
-        showError("Failed to load projects.json — " + (err && err.message ? err.message : String(err)));
+        renderAll();
       });
+    }).catch(function (err) {
+      console.error(err);
+      showError("Failed to load projects — " + (err && err.message ? err.message : String(err)));
+    });
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", load);
